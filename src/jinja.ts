@@ -7,6 +7,7 @@ export interface Node {
 	id: string;
 	type: "root" | "expression" | "statement" | "block" | "ignore";
 	content: string;
+	ownLine: boolean;
 	originalText: string;
 	index: number;
 	length: number;
@@ -15,7 +16,6 @@ export interface Node {
 
 export interface Expression extends Node {
 	type: "expression";
-	ownLine: boolean;
 }
 
 export type Delimiter = "" | "-" | "+";
@@ -35,7 +35,6 @@ export interface Block extends Node {
 
 export interface IgnoreBlock extends Node {
 	type: "ignore";
-	ownLine: boolean;
 }
 
 export type Keyword =

@@ -47,7 +47,7 @@ const printStatement = (node: Statement): builders.Doc => {
 			node.endDelimiter,
 			"%}",
 		],
-		{ shouldBreak: true }
+		{ shouldBreak: node.ownLine }
 	);
 
 	return node.keyword === "else"
@@ -130,10 +130,20 @@ export const embed: Printer<Node>["embed"] = (
 	});
 
 	if (node.type === "block") {
+		if (node.content.includes("\n")) {
+			return builders.group([
+				path.call(print, "nodes", (node as Block).start.id),
+				builders.indent([
+					builders.softline,
+					utils.stripTrailingHardline(mapped),
+				]),
+				builders.hardline,
+				path.call(print, "nodes", (node as Block).end.id),
+			]);
+		}
 		return builders.group([
 			path.call(print, "nodes", (node as Block).start.id),
-			builders.indent([builders.softline, utils.stripTrailingHardline(mapped)]),
-			builders.hardline,
+			utils.stripTrailingHardline(mapped),
 			path.call(print, "nodes", (node as Block).end.id),
 		]);
 	}
