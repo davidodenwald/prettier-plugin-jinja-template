@@ -27,7 +27,7 @@
 		"watch": "npm run build -- --watch",
 		"test": "jest --verbose",
 		"test:watch": "jest --watch --verbose",
-		"publish": "npm run test && npm run build && npm publish",
+		"publish:release": "npm run test && npm run build && npm publish",
 		"publish:beta": "npm run test && npm run build && npm publish --tag beta"
 	},
 	"devDependencies": {
