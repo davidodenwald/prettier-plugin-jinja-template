@@ -14,13 +14,13 @@ To use it with basic .html files, you'll have to override the used parser inside
 
 ```json
 {
-	"overrides": [
-		{
-			"files": ["*.html"],
-			"options": {
-				"parser": "jinja-template"
-			}
-		}
-	]
+  "overrides": [
+    {
+      "files": ["*.html"],
+      "options": {
+        "parser": "jinja-template"
+      }
+    }
+  ]
 }
 ```
