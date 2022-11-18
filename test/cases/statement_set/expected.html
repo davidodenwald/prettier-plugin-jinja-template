@@ -1,0 +1,14 @@
+<head>
+  {% for item in seq %}
+    <!-- meta for {{ item }} -->
+    {% set key, value = call(item) %}
+    <meta name="{{ key }}" content="{{ value }}" />
+  {% endfor %}
+</head>
+<body>
+  {% set navigation = [('index.html', 'Index'), ('about.html', 'About')] %}
+  {% set navigation %}
+    <li><a href="/">Index</a></li>
+    <li><a href="/downloads">Downloads</a></li>
+  {% endset %}
+</body>
