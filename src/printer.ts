@@ -38,15 +38,7 @@ const printExpression = (node: Expression): builders.Doc => {
 
 const printStatement = (node: Statement): builders.Doc => {
 	const statemnt = builders.group(
-		[
-			"{%",
-			node.startDelimiter,
-			" ",
-			node.content,
-			" ",
-			node.endDelimiter,
-			"%}",
-		],
+		["{%", node.delimiter, " ", node.content, " ", node.delimiter, "%}"],
 		{ shouldBreak: node.ownLine }
 	);
 
@@ -99,6 +91,7 @@ export const embed: Printer<Node>["embed"] = (
 				([start, end]) => currentDoc.slice(start, end + 1) in node.nodes
 			);
 			if (!idxs.length) {
+				ignoreDoc = false;
 				return currentDoc;
 			}
 

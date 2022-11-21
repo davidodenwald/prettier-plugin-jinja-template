@@ -32,103 +32,82 @@ export const parse: Parser<Node>["parse"] = (text) => {
 
 	let match;
 	let i = 0;
-	while ((match = root.content.slice(i).match(regex)) !== null) {
+	while ((match = text.slice(i).match(regex)) !== null) {
 		if (!match.groups || match.index === undefined) {
 			continue;
 		}
+		const matchLength = match[0].length;
+
+		// skip script and style blocks
 		if (match.groups.scriptBlock || match.groups.styleBlock) {
-			i += match.index + match[0].length;
+			i += match.index + matchLength;
 			continue;
 		}
 
 		const pre = match.groups.pre || "";
 		const newline = !!match.groups.newline;
 
-		const node = match.groups.node;
+		const matchText = match.groups.node;
 		const expression = match.groups.expression;
 		const statement = match.groups.statement;
 		const ignoreBlock = match.groups.ignoreBlock;
 		const comment = match.groups.comment;
 
-		if (!node && !expression && !statement && !ignoreBlock && !comment) {
+		if (!matchText && !expression && !statement && !ignoreBlock && !comment) {
 			continue;
 		}
-		const matchText = node;
+		const placeholder = generatePlaceholder();
+
+		const node = {
+			id: placeholder,
+			ownLine: newline,
+			originalText: matchText,
+			index: match.index + i + pre.length,
+			length: matchText.length,
+			nodes: root.nodes,
+		};
 
 		if (ignoreBlock || comment) {
-			const placeholder = generatePlaceholder();
 			root.content = root.content.replace(matchText, placeholder);
-
-			root.nodes[placeholder] = {
-				id: placeholder,
+			root.nodes[node.id] = {
+				...node,
 				type: "ignore",
 				content: ignoreBlock || comment,
-				ownLine: newline,
-				originalText: matchText,
-				index: match.index + i + pre.length,
-				length: matchText.length,
-				nodes: root.nodes,
-			} as IgnoreBlock;
-			i += match.index;
+			};
 		}
 
 		if (expression) {
-			const placeholder = generatePlaceholder();
 			root.content = root.content.replace(matchText, placeholder);
-
-			root.nodes[placeholder] = {
-				id: placeholder,
+			root.nodes[node.id] = {
+				...node,
 				type: "expression",
 				content: expression,
-				ownLine: newline,
-				originalText: matchText,
-				index: match.index + i + pre.length,
-				length: matchText.length,
-				nodes: root.nodes,
-			} as Expression;
-
-			i += match.index;
+			};
 		}
 
 		if (statement) {
 			const keyword = match.groups.keyword as Keyword;
-			const startDelimiter = match.groups.startDelimiter as Delimiter;
-			const endDelimiter = match.groups.endDelimiter as Delimiter;
+			const delimiter = (match.groups.startDelimiter ||
+				match.groups.endDelimiter) as Delimiter;
 
 			if (nonClosingStatements.includes(keyword)) {
-				const placeholder = generatePlaceholder();
 				root.content = root.content.replace(matchText, placeholder);
-				root.nodes[placeholder] = {
-					id: placeholder,
+				root.nodes[node.id] = {
+					...node,
 					type: "statement",
 					content: statement,
-					ownLine: newline,
-					originalText: matchText,
-					index: match.index + i + pre.length,
-					length: matchText.length,
 					keyword,
-					startDelimiter,
-					endDelimiter,
-					nodes: root.nodes,
+					delimiter,
 				} as Statement;
-
-				i += match.index;
 			} else if (!keyword.startsWith("end")) {
-				statementStack.push({
-					id: generatePlaceholder(),
-					type: "statement" as const,
+				root.nodes[node.id] = {
+					...node,
+					type: "statement",
 					content: statement,
-					ownLine: newline,
-					originalText: matchText,
-					index: match.index + i + pre.length,
-					length: matchText.length,
 					keyword,
-					startDelimiter,
-					endDelimiter,
-					nodes: root.nodes,
-				});
-
-				i += match.index + matchText.length;
+					delimiter,
+				} as Statement;
+				statementStack.push(root.nodes[placeholder] as Statement);
 			} else {
 				let start: Statement | undefined;
 				while (!start) {
@@ -143,6 +122,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 					const startKeyword = keyword.replace("end", "");
 					if (startKeyword !== start.keyword) {
 						if (start.keyword === "set") {
+							root.content = root.content.replace(start.originalText, start.id);
 							start = undefined;
 							continue;
 						}
@@ -154,58 +134,48 @@ export const parse: Parser<Node>["parse"] = (text) => {
 				}
 
 				const end = {
-					id: generatePlaceholder(),
-					type: "statement" as const,
+					...node,
+					type: "statement",
 					content: statement,
-					ownLine: newline,
-					originalText: matchText,
-					index: match.index + i + pre.length,
-					length: matchText.length,
 					keyword,
-					startDelimiter,
-					endDelimiter,
-					nodes: root.nodes,
-				};
+					delimiter,
+				} as Statement;
+				root.nodes[end.id] = end;
 
-				const placeholder = generatePlaceholder();
-				const content = root.content.slice(
-					start.index + start.length,
-					end.index
+				const blockText = root.content.slice(
+					root.content.indexOf(start.originalText),
+					root.content.indexOf(end.originalText) + end.length
 				);
 
-				root.nodes[placeholder] = {
-					id: placeholder,
+				const block = {
+					id: generatePlaceholder(),
 					type: "block",
 					start: start,
 					end: end,
-					content,
+					content: blockText.slice(start.length, blockText.length - end.length),
 					ownLine: newline,
-					originalText: matchText,
+					originalText: text.slice(start.index, end.index + end.length),
 					index: start.index,
 					length: end.index + end.length - start.index,
 					nodes: root.nodes,
 				} as Block;
+				root.nodes[block.id] = block;
 
-				root.nodes[start.id] = start;
-				root.nodes[end.id] = end;
-
-				root.content =
-					root.content.slice(0, start.index) +
-					placeholder +
-					root.content.slice(end.index + end.length, root.content.length);
-
-				i = start.index + placeholder.length;
+				root.content = root.content.replace(blockText, block.id);
 			}
 		}
+
+		i += match.index + matchLength;
 	}
 
-	const remainingStatement = statementStack.find(
-		(stmt) => stmt.keyword !== "set"
-	);
-	if (remainingStatement) {
-		throw new Error(
-			`No closing statement found for opening statement "${remainingStatement.content}".`
-		);
+	for (const stmt of statementStack) {
+		if (stmt.keyword === "set") {
+			root.content = root.content.replace(stmt.originalText, stmt.id);
+		} else {
+			throw new Error(
+				`No closing statement found for opening statement "${stmt.content}".`
+			);
+		}
 	}
 
 	return root;

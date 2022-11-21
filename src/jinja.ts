@@ -23,8 +23,7 @@ export type Delimiter = "" | "-" | "+";
 export interface Statement extends Node {
 	type: "statement";
 	keyword: Keyword;
-	startDelimiter: Delimiter;
-	endDelimiter: Delimiter;
+	delimiter: Delimiter;
 }
 
 export interface Block extends Node {
