@@ -5,7 +5,7 @@ Formatter plugin for jinja2 template files.
 ## Install
 
 ```bash
-npm install --save-dev prettier-plugin-jinja-template
+npm install --save-dev prettier prettier-plugin-jinja-template
 ```
 
 ## Use
