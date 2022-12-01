@@ -7,8 +7,6 @@ import {
 	Statement,
 	Block,
 	nonClosingStatements,
-	Expression,
-	IgnoreBlock,
 } from "./jinja";
 
 const regex =
