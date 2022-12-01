@@ -10,7 +10,7 @@ import {
 } from "./jinja";
 
 const regex =
-	/(?<pre>(?<newline>\n)?(\s*?))(?<node>{{\s*(?<expression>'([^']|\\')*'|"([^"]|\\")*"|[\S\s]*?)\s*}}|{%(?<startDelimiter>[-\+]?)\s*(?<statement>(?<keyword>for|endfor|if|else|endif|macro|endmacro|call|endcall|filter|endfilter|set|endset|include|import|from|extends|block|endblock)('([^']|\\')*'|"([^"]|\\")*"|[\S\s])*?)\s*(?<endDelimiter>[-\+]?)%}|(?<comment>{#[\S\s]*?#})|(?<scriptBlock><(script)((?!<)[\s\S])*>((?!<\/script)[\s\S])*?{{[\s\S]*?<\/(script)>)|(?<styleBlock><(style)((?!<)[\s\S])*>((?!<\/style)[\s\S])*?{{[\s\S]*?<\/(style)>)|(?<ignoreBlock><!-- prettier-ignore-start -->[\s\S]*<!-- prettier-ignore-end -->))/;
+	/(?<pre>(?<newline>\n)?(\s*?))(?<node>{{\s*(?<expression>'([^']|\\')*'|"([^"]|\\")*"|[\S\s]*?)\s*}}|{%(?<startDelimiter>[-+]?)\s*(?<statement>(?<keyword>for|endfor|if|else|endif|macro|endmacro|call|endcall|filter|endfilter|set|endset|include|import|from|extends|block|endblock)('([^']|\\')*'|"([^"]|\\")*"|[\S\s])*?)\s*(?<endDelimiter>[-+]?)%}|(?<comment>{#[\S\s]*?#})|(?<scriptBlock><(script)((?!<)[\s\S])*>((?!<\/script)[\s\S])*?{{[\s\S]*?<\/(script)>)|(?<styleBlock><(style)((?!<)[\s\S])*>((?!<\/style)[\s\S])*?{{[\s\S]*?<\/(style)>)|(?<ignoreBlock><!-- prettier-ignore-start -->[\s\S]*<!-- prettier-ignore-end -->))/;
 
 export const parse: Parser<Node>["parse"] = (text) => {
 	const statementStack: Statement[] = [];
