@@ -41,6 +41,7 @@ export type Keyword =
 	| "endfor"
 	| "if"
 	| "else"
+	| "elif"
 	| "endif"
 	| "macro"
 	| "endmacro"
@@ -59,6 +60,7 @@ export type Keyword =
 
 export const nonClosingStatements = [
 	"else",
+	"elif",
 	"include",
 	"import",
 	"from",

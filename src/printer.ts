@@ -42,7 +42,7 @@ const printStatement = (node: Statement): builders.Doc => {
 		{ shouldBreak: node.ownLine }
 	);
 
-	return node.keyword === "else"
+	return ["else", "elif"].includes(node.keyword)
 		? [builders.dedent(builders.hardline), statemnt, builders.hardline]
 		: statemnt;
 };
@@ -147,7 +147,7 @@ const splitAtElse = (node: Node): string[] => {
 	const elseNodes = Object.values(node.nodes).filter(
 		(n) =>
 			n.type === "statement" &&
-			(n as Statement).keyword === "else" &&
+			["else", "elif"].includes((n as Statement).keyword) &&
 			node.content.search(n.id) !== NOT_FOUND
 	);
 	if (!elseNodes.length) {
