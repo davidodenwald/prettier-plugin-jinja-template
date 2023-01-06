@@ -9,6 +9,8 @@ import {
 	nonClosingStatements,
 } from "./jinja";
 
+const NOT_FOUND = -1;
+
 const regex =
 	/(?<pre>(?<newline>\n)?(\s*?))(?<node>{{\s*(?<expression>'([^']|\\')*'|"([^"]|\\")*"|[\S\s]*?)\s*}}|{%(?<startDelimiter>[-+]?)\s*(?<statement>(?<keyword>for|endfor|if|else|elif|endif|macro|endmacro|call|endcall|filter|endfilter|set|endset|include|import|from|extends|block|endblock)('([^']|\\')*'|"([^"]|\\")*"|[\S\s])*?)\s*(?<endDelimiter>[-+]?)%}|(?<comment>{#[\S\s]*?#})|(?<scriptBlock><(script)((?!<)[\s\S])*>((?!<\/script)[\s\S])*?{{[\s\S]*?<\/(script)>)|(?<styleBlock><(style)((?!<)[\s\S])*>((?!<\/style)[\s\S])*?{{[\s\S]*?<\/(style)>)|(?<ignoreBlock><!-- prettier-ignore-start -->[\s\S]*<!-- prettier-ignore-end -->))/;
 
@@ -145,14 +147,15 @@ export const parse: Parser<Node>["parse"] = (text) => {
 					root.content.indexOf(end.originalText) + end.length
 				);
 
+				const originalText = text.slice(start.index, end.index + end.length);
 				const block = {
 					id: generatePlaceholder(),
 					type: "block",
 					start: start,
 					end: end,
 					content: blockText.slice(start.length, blockText.length - end.length),
-					ownLine: newline,
-					originalText: text.slice(start.index, end.index + end.length),
+					ownLine: originalText.search("\n") !== NOT_FOUND,
+					originalText,
 					index: start.index,
 					length: end.index + end.length - start.index,
 					nodes: root.nodes,

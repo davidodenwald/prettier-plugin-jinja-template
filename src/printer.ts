@@ -42,9 +42,13 @@ const printStatement = (node: Statement): builders.Doc => {
 		{ shouldBreak: node.ownLine }
 	);
 
-	return ["else", "elif"].includes(node.keyword)
-		? [builders.dedent(builders.hardline), statemnt, builders.hardline]
-		: statemnt;
+	if (
+		["else", "elif"].includes(node.keyword) &&
+		surroundingBlock(node)?.ownLine
+	) {
+		return [builders.dedent(builders.hardline), statemnt, builders.hardline];
+	}
+	return statemnt;
 };
 
 const printIgnoreBlock = (node: IgnoreBlock): builders.Doc => {
@@ -181,4 +185,10 @@ export const findPlaceholders = (text: string): [number, number][] => {
 		i += start + Placeholder.startToken.length;
 	}
 	return res;
+};
+
+export const surroundingBlock = (node: Node): Block | undefined => {
+	return Object.values(node.nodes).find(
+		(n) => n.type === "block" && n.content.search(node.id) !== NOT_FOUND
+	) as Block;
 };
