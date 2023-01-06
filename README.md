@@ -10,8 +10,7 @@ npm install --save-dev prettier prettier-plugin-jinja-template
 
 ## Use
 
-To use it with basic .html files, you'll have to override the used parser inside your prettier config:
-
+To format basic .html files, you'll have to override the used parser inside your `.prettierrc`:
 ```json
 {
   "overrides": [
@@ -23,4 +22,9 @@ To use it with basic .html files, you'll have to override the used parser inside
     }
   ]
 }
+```
+
+Run it on all html files in your project:
+```bash
+npx prettier --write **/*.html
 ```
