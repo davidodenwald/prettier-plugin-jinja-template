@@ -56,7 +56,9 @@ export type Keyword =
 	| "from"
 	| "extends"
 	| "block"
-	| "endblock";
+	| "endblock"
+	| "with"
+	| "endwith";
 
 export const nonClosingStatements = [
 	"else",
