@@ -22,7 +22,7 @@ export type Delimiter = "" | "-" | "+";
 
 export interface Statement extends Node {
 	type: "statement";
-	keyword: Keyword;
+	keyword: string;
 	delimiter: Delimiter;
 }
 
@@ -35,30 +35,6 @@ export interface Block extends Node {
 export interface IgnoreBlock extends Node {
 	type: "ignore";
 }
-
-export type Keyword =
-	| "for"
-	| "endfor"
-	| "if"
-	| "else"
-	| "elif"
-	| "endif"
-	| "macro"
-	| "endmacro"
-	| "call"
-	| "endcall"
-	| "filter"
-	| "endfilter"
-	| "set"
-	| "endset"
-	| "include"
-	| "import"
-	| "from"
-	| "extends"
-	| "block"
-	| "endblock"
-	| "with"
-	| "endwith";
 
 export const nonClosingStatements = [
 	"else",

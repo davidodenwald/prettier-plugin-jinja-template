@@ -1,7 +1,6 @@
 import { Parser } from "prettier";
 import {
 	Delimiter,
-	Keyword,
 	Node,
 	Placeholder,
 	Statement,
@@ -12,7 +11,7 @@ import {
 const NOT_FOUND = -1;
 
 const regex =
-	/(?<pre>(?<newline>\n)?(\s*?))(?<node>{{\s*(?<expression>'([^']|\\')*'|"([^"]|\\")*"|[\S\s]*?)\s*}}|{%(?<startDelimiter>[-+]?)\s*(?<statement>(?<keyword>for|endfor|if|else|elif|endif|macro|endmacro|call|endcall|filter|endfilter|set|endset|include|import|from|extends|block|endblock|with|endwith)('([^']|\\')*'|"([^"]|\\")*"|[\S\s])*?)\s*(?<endDelimiter>[-+]?)%}|(?<comment>{#[\S\s]*?#})|(?<scriptBlock><(script)((?!<)[\s\S])*>((?!<\/script)[\s\S])*?{{[\s\S]*?<\/(script)>)|(?<styleBlock><(style)((?!<)[\s\S])*>((?!<\/style)[\s\S])*?{{[\s\S]*?<\/(style)>)|(?<ignoreBlock><!-- prettier-ignore-start -->[\s\S]*<!-- prettier-ignore-end -->))/;
+	/(?<pre>(?<newline>\n)?(\s*?))(?<node>{{\s*(?<expression>'([^']|\\')*'|"([^"]|\\")*"|[\S\s]*?)\s*}}|{%(?<startDelimiter>[-+]?)\s*(?<statement>(?<keyword>\w+)('([^']|\\')*'|"([^"]|\\")*"|[\S\s])*?)\s*(?<endDelimiter>[-+]?)%}|(?<comment>{#[\S\s]*?#})|(?<scriptBlock><(script)((?!<)[\s\S])*>((?!<\/script)[\s\S])*?{{[\s\S]*?<\/(script)>)|(?<styleBlock><(style)((?!<)[\s\S])*>((?!<\/style)[\s\S])*?{{[\s\S]*?<\/(style)>)|(?<ignoreBlock><!-- prettier-ignore-start -->[\s\S]*<!-- prettier-ignore-end -->))/;
 
 export const parse: Parser<Node>["parse"] = (text) => {
 	const statementStack: Statement[] = [];
@@ -86,7 +85,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 		}
 
 		if (statement) {
-			const keyword = match.groups.keyword as Keyword;
+			const keyword = match.groups.keyword;
 			const delimiter = (match.groups.startDelimiter ||
 				match.groups.endDelimiter) as Delimiter;
 
