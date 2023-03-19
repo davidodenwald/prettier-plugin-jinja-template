@@ -31,14 +31,35 @@ export const print: Printer<Node>["print"] = (path) => {
 };
 
 const printExpression = (node: Expression): builders.Doc => {
-	return builders.group(["{{", " ", node.content, " ", "}}"], {
-		shouldBreak: node.ownLine || node.content.includes("\n"),
-	});
+	const multiline = node.content.includes("\n");
+
+	return builders.group(
+		builders.join(" ", [
+			"{{",
+			multiline
+				? builders.indent([getMultilineGroup(node.content)])
+				: node.content,
+			multiline ? [builders.hardline, "}}"] : "}}",
+		]),
+		{
+			shouldBreak: node.ownLine,
+		}
+	);
 };
 
 const printStatement = (node: Statement): builders.Doc => {
+	const multiline = node.content.includes("\n");
+
 	const statemnt = builders.group(
-		["{%", node.delimiter, " ", node.content, " ", node.delimiter, "%}"],
+		builders.join(" ", [
+			["{%", node.delimiter],
+			multiline
+				? builders.indent(getMultilineGroup(node.content))
+				: node.content,
+			multiline
+				? [builders.hardline, node.delimiter, "%}"]
+				: [node.delimiter, "%}"],
+		]),
 		{ shouldBreak: node.ownLine }
 	);
 
@@ -145,6 +166,14 @@ export const embed: Printer<Node>["embed"] = (
 		]);
 	}
 	return [...mapped, builders.hardline];
+};
+
+const getMultilineGroup = (content: String): builders.Group => {
+	return builders.group(
+		content.split("\n").map((line, i) => {
+			return [builders.hardline, line.trim()];
+		})
+	);
 };
 
 const splitAtElse = (node: Node): string[] => {
