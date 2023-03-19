@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from "fs";
 import { join } from "path";
-import { format, Options } from "prettier";
+import { format, Options, ParserOptions } from "prettier";
 import * as jinjaPlugin from "../src/index";
 
 const prettify = (code: string, options: Options) =>
@@ -41,4 +41,14 @@ tests.forEach((test) => {
 			expect(prettify(result, configObject)).toEqual(expected);
 		}
 	});
+});
+
+test("node has correct locStart and -End", () => {
+	const plugin = jinjaPlugin.parsers["jinja-template"];
+
+	const ast = plugin.parse(`<p>{{ test }}</p>`, {}, {} as ParserOptions);
+	const node = Object.values(ast.nodes)[0]!;
+
+	expect(plugin.locStart(node)).toEqual(3);
+	expect(plugin.locEnd(node)).toEqual(13);
 });
