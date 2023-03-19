@@ -17,6 +17,14 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "npm"
-      - run: npm install -f
-      - run: npm run build
-      - run: npm run test
+      - name: Install dependencies
+        run: npm install -f
+
+      - name: Build project
+        run: npm run build
+
+      - name: Run tests
+        run: npm run test
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v1
