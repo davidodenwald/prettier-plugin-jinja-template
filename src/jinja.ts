@@ -16,6 +16,7 @@ export interface Node {
 
 export interface Expression extends Node {
 	type: "expression";
+	delimiter: Delimiter;
 }
 
 export type Delimiter = "" | "-" | "+";

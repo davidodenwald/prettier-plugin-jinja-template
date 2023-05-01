@@ -3,6 +3,7 @@ import {
 	Delimiter,
 	Node,
 	Placeholder,
+	Expression,
 	Statement,
 	Block,
 	nonClosingStatements,
@@ -11,7 +12,7 @@ import {
 const NOT_FOUND = -1;
 
 const regex =
-	/(?<pre>(?<newline>\n)?(\s*?))(?<node>{{\s*(?<expression>'([^']|\\')*'|"([^"]|\\")*"|[\S\s]*?)\s*}}|{%(?<startDelimiter>[-+]?)\s*(?<statement>(?<keyword>\w+)('([^']|\\')*'|"([^"]|\\")*"|[\S\s])*?)\s*(?<endDelimiter>[-+]?)%}|(?<comment>{#[\S\s]*?#})|(?<scriptBlock><(script)((?!<)[\s\S])*>((?!<\/script)[\s\S])*?{{[\s\S]*?<\/(script)>)|(?<styleBlock><(style)((?!<)[\s\S])*>((?!<\/style)[\s\S])*?{{[\s\S]*?<\/(style)>)|(?<ignoreBlock><!-- prettier-ignore-start -->[\s\S]*<!-- prettier-ignore-end -->))/;
+	/(?<pre>(?<newline>\n)?(\s*?))(?<node>{{(?<startDelimiterEx>[-+]?)\s*(?<expression>'([^']|\\')*'|"([^"]|\\")*"|[\S\s]*?)\s*(?<endDelimiterEx>[-+]?)}}|{%(?<startDelimiter>[-+]?)\s*(?<statement>(?<keyword>\w+)('([^']|\\')*'|"([^"]|\\")*"|[\S\s])*?)\s*(?<endDelimiter>[-+]?)%}|(?<comment>{#[\S\s]*?#})|(?<scriptBlock><(script)((?!<)[\s\S])*>((?!<\/script)[\s\S])*?{{[\s\S]*?<\/(script)>)|(?<styleBlock><(style)((?!<)[\s\S])*>((?!<\/style)[\s\S])*?{{[\s\S]*?<\/(style)>)|(?<ignoreBlock><!-- prettier-ignore-start -->[\s\S]*<!-- prettier-ignore-end -->))/;
 
 export const parse: Parser<Node>["parse"] = (text) => {
 	const statementStack: Statement[] = [];
@@ -76,12 +77,16 @@ export const parse: Parser<Node>["parse"] = (text) => {
 		}
 
 		if (expression) {
+			const delimiter = (match.groups.startDelimiterEx ||
+				match.groups.endDelimiterEx) as Delimiter;
+
 			root.content = root.content.replace(matchText, placeholder);
 			root.nodes[node.id] = {
 				...node,
 				type: "expression",
 				content: expression,
-			};
+				delimiter,
+			} as Expression;
 		}
 
 		if (statement) {
