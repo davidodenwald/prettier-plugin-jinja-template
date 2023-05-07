@@ -12,7 +12,7 @@ import {
 const NOT_FOUND = -1;
 
 const regex =
-	/(?<pre>(?<newline>\n)?(\s*?))(?<node>{{(?<startDelimiterEx>[-+]?)\s*(?<expression>'([^']|\\')*'|"([^"]|\\")*"|[\S\s]*?)\s*(?<endDelimiterEx>[-+]?)}}|{%(?<startDelimiter>[-+]?)\s*(?<statement>(?<keyword>\w+)('([^']|\\')*'|"([^"]|\\")*"|[\S\s])*?)\s*(?<endDelimiter>[-+]?)%}|(?<comment>{#[\S\s]*?#})|(?<scriptBlock><(script)((?!<)[\s\S])*>((?!<\/script)[\s\S])*?{{[\s\S]*?<\/(script)>)|(?<styleBlock><(style)((?!<)[\s\S])*>((?!<\/style)[\s\S])*?{{[\s\S]*?<\/(style)>)|(?<ignoreBlock><!-- prettier-ignore-start -->[\s\S]*<!-- prettier-ignore-end -->))/;
+	/(?<node>{{(?<startDelimiterEx>[-+]?)\s*(?<expression>'([^']|\\')*'|"([^"]|\\")*"|[\S\s]*?)\s*(?<endDelimiterEx>[-+]?)}}|{%(?<startDelimiter>[-+]?)\s*(?<statement>(?<keyword>\w+)('([^']|\\')*'|"([^"]|\\")*"|[\S\s])*?)\s*(?<endDelimiter>[-+]?)%}|(?<comment>{#[\S\s]*?#})|(?<scriptBlock><(script)((?!<)[\s\S])*>((?!<\/script)[\s\S])*?{{[\s\S]*?<\/(script)>)|(?<styleBlock><(style)((?!<)[\s\S])*>((?!<\/style)[\s\S])*?{{[\s\S]*?<\/(style)>)|(?<ignoreBlock><!-- prettier-ignore-start -->[\s\S]*<!-- prettier-ignore-end -->))/;
 
 export const parse: Parser<Node>["parse"] = (text) => {
 	const statementStack: Statement[] = [];
@@ -21,7 +21,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 		id: "0",
 		type: "root" as const,
 		content: text,
-		ownLine: false,
+		preNewLines: 0,
 		originalText: text,
 		index: 0,
 		length: 0,
@@ -44,9 +44,6 @@ export const parse: Parser<Node>["parse"] = (text) => {
 			continue;
 		}
 
-		const pre = match.groups.pre || "";
-		const newline = !!match.groups.newline;
-
 		const matchText = match.groups.node;
 		const expression = match.groups.expression;
 		const statement = match.groups.statement;
@@ -58,21 +55,28 @@ export const parse: Parser<Node>["parse"] = (text) => {
 		}
 		const placeholder = generatePlaceholder();
 
+		const emptyLinesBetween = text.slice(i, i + match.index).match(/^\s+$/) || [
+			"",
+		];
+		const preNewLines = emptyLinesBetween.length
+			? emptyLinesBetween[0].split("\n").length - 1
+			: 0;
+
 		const node = {
 			id: placeholder,
-			ownLine: newline,
+			preNewLines,
 			originalText: matchText,
-			index: match.index + i + pre.length,
+			index: match.index + i,
 			length: matchText.length,
 			nodes: root.nodes,
 		};
 
-		if (ignoreBlock || comment) {
+		if (comment || ignoreBlock) {
 			root.content = root.content.replace(matchText, placeholder);
 			root.nodes[node.id] = {
 				...node,
-				type: "ignore",
-				content: ignoreBlock || comment,
+				type: comment ? "comment" : "ignore",
+				content: comment || ignoreBlock,
 			};
 		}
 
@@ -158,7 +162,8 @@ export const parse: Parser<Node>["parse"] = (text) => {
 					start: start,
 					end: end,
 					content: blockText.slice(start.length, blockText.length - end.length),
-					ownLine: originalText.search("\n") !== NOT_FOUND,
+					preNewLines: start.preNewLines,
+					containsNewLines: originalText.search("\n") !== NOT_FOUND,
 					originalText,
 					index: start.index,
 					length: end.index + end.length - start.index,

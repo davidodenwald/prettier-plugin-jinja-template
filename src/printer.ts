@@ -1,13 +1,6 @@
-import { Printer } from "prettier";
+import { AstPath, Printer } from "prettier";
 import { builders, utils } from "prettier/doc";
-import {
-	Placeholder,
-	Node,
-	Expression,
-	Statement,
-	Block,
-	IgnoreBlock,
-} from "./jinja";
+import { Placeholder, Node, Expression, Statement, Block } from "./jinja";
 
 const NOT_FOUND = -1;
 
@@ -24,8 +17,10 @@ export const print: Printer<Node>["print"] = (path) => {
 			return printExpression(node as Expression);
 		case "statement":
 			return printStatement(node as Statement);
+		case "comment":
+			return printCommentBlock(node);
 		case "ignore":
-			return printIgnoreBlock(node as IgnoreBlock);
+			return printIgnoreBlock(node);
 	}
 	return [];
 };
@@ -33,20 +28,24 @@ export const print: Printer<Node>["print"] = (path) => {
 const printExpression = (node: Expression): builders.Doc => {
 	const multiline = node.content.includes("\n");
 
-	return builders.group(
+	const expression = builders.group(
 		builders.join(" ", [
 			["{{", node.delimiter],
 			multiline
-				? builders.indent([getMultilineGroup(node.content)])
+				? builders.indent(getMultilineGroup(node.content))
 				: node.content,
 			multiline
 				? [builders.hardline, node.delimiter, "}}"]
 				: [node.delimiter, "}}"],
 		]),
 		{
-			shouldBreak: node.ownLine,
+			shouldBreak: node.preNewLines > 0,
 		}
 	);
+
+	return node.preNewLines > 1
+		? builders.group([builders.hardline, builders.trim, expression])
+		: expression;
 };
 
 const printStatement = (node: Statement): builders.Doc => {
@@ -62,20 +61,30 @@ const printStatement = (node: Statement): builders.Doc => {
 				? [builders.hardline, node.delimiter, "%}"]
 				: [node.delimiter, "%}"],
 		]),
-		{ shouldBreak: node.ownLine }
+		{ shouldBreak: node.preNewLines > 0 }
 	);
 
 	if (
 		["else", "elif"].includes(node.keyword) &&
-		surroundingBlock(node)?.ownLine
+		surroundingBlock(node)?.containsNewLines
 	) {
 		return [builders.dedent(builders.hardline), statemnt, builders.hardline];
 	}
 	return statemnt;
 };
 
-const printIgnoreBlock = (node: IgnoreBlock): builders.Doc => {
-	return builders.group(node.content, { shouldBreak: node.ownLine });
+const printCommentBlock = (node: Node): builders.Doc => {
+	const comment = builders.group(node.content, {
+		shouldBreak: node.preNewLines > 0,
+	});
+
+	return node.preNewLines > 1
+		? builders.group([builders.hardline, builders.trim, comment])
+		: comment;
+};
+
+const printIgnoreBlock = (node: Node): builders.Doc => {
+	return node.content;
 };
 
 export const embed: Printer<Node>["embed"] = (
@@ -150,22 +159,11 @@ export const embed: Printer<Node>["embed"] = (
 	});
 
 	if (node.type === "block") {
-		if (node.content.includes("\n")) {
-			return builders.group([
-				path.call(print, "nodes", (node as Block).start.id),
-				builders.indent([
-					builders.softline,
-					utils.stripTrailingHardline(mapped),
-				]),
-				builders.hardline,
-				path.call(print, "nodes", (node as Block).end.id),
-			]);
-		}
-		return builders.group([
-			path.call(print, "nodes", (node as Block).start.id),
-			utils.stripTrailingHardline(mapped),
-			path.call(print, "nodes", (node as Block).end.id),
-		]);
+		const block = buildBlock(path, print, node as Block, mapped);
+
+		return node.preNewLines > 1
+			? builders.group([builders.hardline, builders.trim, block])
+			: block;
 	}
 	return [...mapped, builders.hardline];
 };
@@ -222,4 +220,25 @@ export const surroundingBlock = (node: Node): Block | undefined => {
 	return Object.values(node.nodes).find(
 		(n) => n.type === "block" && n.content.search(node.id) !== NOT_FOUND
 	) as Block;
+};
+
+const buildBlock = (
+	path: AstPath<Node>,
+	print: (path: AstPath<Node>) => builders.Doc,
+	block: Block,
+	mapped: (string | builders.Doc[] | builders.DocCommand)[]
+): builders.Doc => {
+	if (block.containsNewLines) {
+		return builders.group([
+			path.call(print, "nodes", block.start.id),
+			builders.indent([builders.softline, utils.stripTrailingHardline(mapped)]),
+			builders.hardline,
+			path.call(print, "nodes", block.end.id),
+		]);
+	}
+	return builders.group([
+		path.call(print, "nodes", block.start.id),
+		utils.stripTrailingHardline(mapped),
+		path.call(print, "nodes", block.end.id),
+	]);
 };

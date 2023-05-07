@@ -5,9 +5,9 @@ export const Placeholder = {
 
 export interface Node {
 	id: string;
-	type: "root" | "expression" | "statement" | "block" | "ignore";
+	type: "root" | "expression" | "statement" | "block" | "comment" | "ignore";
 	content: string;
-	ownLine: boolean;
+	preNewLines: number;
 	originalText: string;
 	index: number;
 	length: number;
@@ -31,10 +31,7 @@ export interface Block extends Node {
 	type: "block";
 	start: Statement;
 	end: Statement;
-}
-
-export interface IgnoreBlock extends Node {
-	type: "ignore";
+	containsNewLines: boolean;
 }
 
 export const nonClosingStatements = [
