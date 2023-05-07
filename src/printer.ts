@@ -228,6 +228,14 @@ const buildBlock = (
 	block: Block,
 	mapped: (string | builders.Doc[] | builders.DocCommand)[]
 ): builders.Doc => {
+	// if the content is empty or whitespace only.
+	if (block.content.match(/^\s*$/)) {
+		return builders.fill([
+			path.call(print, "nodes", block.start.id),
+			builders.softline,
+			path.call(print, "nodes", block.end.id),
+		]);
+	}
 	if (block.containsNewLines) {
 		return builders.group([
 			path.call(print, "nodes", block.start.id),
