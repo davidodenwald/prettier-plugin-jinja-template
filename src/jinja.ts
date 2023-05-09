@@ -41,4 +41,5 @@ export const nonClosingStatements = [
 	"import",
 	"from",
 	"extends",
+	"pluralize",
 ];
