@@ -136,7 +136,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 						}
 
 						throw new Error(
-							`Closung statement "${statement}" doesn't match Opening Statement "${start.content}".`
+							`Closing statement "${statement}" doesn't match Opening Statement "${start.content}".`
 						);
 					}
 				}
