@@ -37,3 +37,17 @@
     <li><em>no users found</em></li>
 
 	{% endfor %}
+
+{% macro input(name, value='', type='text', size=20) %}
+
+{{ my_variable|default('my_variable is not defined') }}
+
+{% for city, items in users|groupby("city") %}
+<li>{{ city }}
+<ul>{% for user in items %}
+<li>{{ user.name }}
+{% endfor %}</ul>
+</li>
+{% endfor %}
+
+{% endmacro %}

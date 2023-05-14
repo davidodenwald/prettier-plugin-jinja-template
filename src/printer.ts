@@ -44,7 +44,7 @@ const printExpression = (node: Expression): builders.Doc => {
 	);
 
 	return node.preNewLines > 1
-		? builders.group([builders.hardline, builders.trim, expression])
+		? builders.group([builders.trim, builders.hardline, expression])
 		: expression;
 };
 
@@ -79,7 +79,7 @@ const printCommentBlock = (node: Node): builders.Doc => {
 	});
 
 	return node.preNewLines > 1
-		? builders.group([builders.hardline, builders.trim, comment])
+		? builders.group([builders.trim, builders.hardline, comment])
 		: comment;
 };
 
@@ -162,7 +162,7 @@ export const embed: Printer<Node>["embed"] = (
 		const block = buildBlock(path, print, node as Block, mapped);
 
 		return node.preNewLines > 1
-			? builders.group([builders.hardline, builders.trim, block])
+			? builders.group([builders.trim, builders.hardline, block])
 			: block;
 	}
 	return [...mapped, builders.hardline];
