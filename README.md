@@ -8,6 +8,13 @@ Formatter plugin for jinja2 template files.
 npm install --save-dev prettier prettier-plugin-jinja-template
 ```
 
+Add the plugin to your `.prettierrc`:
+```json
+{
+  "plugins": ["prettier-plugin-jinja-template"]
+}
+```
+
 ## Use
 
 To format basic .html files, you'll have to override the used parser inside your `.prettierrc`:
@@ -27,4 +34,9 @@ To format basic .html files, you'll have to override the used parser inside your
 Run it on all html files in your project:
 ```bash
 npx prettier --write **/*.html
+```
+
+If you don't have a prettier config you can run the plugin with this command:
+```bash
+npx prettier --write **/*.html --plugin=prettier-plugin-jinja-template
 ```
