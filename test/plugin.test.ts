@@ -17,7 +17,7 @@ tests.forEach((test) => {
 	if (test.startsWith("_")) {
 		return;
 	}
-	return it(test, () => {
+	return it(test, async () => {
 		const path = join(testFolder, test);
 		const input = readFileSync(join(path, "input.html")).toString();
 		const expected = readFileSync(join(path, "expected.html")).toString();
@@ -34,11 +34,11 @@ tests.forEach((test) => {
 
 		if (expectedError) {
 			jest.spyOn(console, "error").mockImplementation(() => {});
-			expect(format).toThrow(expectedError);
+			await expect(format()).rejects.toThrow(expectedError);
 		} else {
-			const result = format();
+			const result = await format();
 			expect(result).toEqual(expected);
-			expect(prettify(result, configObject)).toEqual(expected);
+			expect(await prettify(result, configObject)).toEqual(expected);
 		}
 	});
 });

@@ -1,10 +1,23 @@
-import { AstPath, Printer } from "prettier";
+import { AstPath, Printer, Options, Doc } from "prettier";
 import { builders, utils } from "prettier/doc";
 import { Placeholder, Node, Expression, Statement, Block } from "./jinja";
 
 const NOT_FOUND = -1;
 
 process.env.PRETTIER_DEBUG = "true";
+
+export const getVisitorKeys = (
+	ast: Node | { [id: string]: Node },
+): string[] => {
+	if ("type" in ast) {
+		return ast.type === "root" ? ["nodes"] : [];
+	}
+	return Object.values(ast)
+		.filter((node) => {
+			return node.type === "block";
+		})
+		.map((e) => e.id);
+};
 
 export const print: Printer<Node>["print"] = (path) => {
 	const node = path.getNode();
@@ -40,7 +53,7 @@ const printExpression = (node: Expression): builders.Doc => {
 		]),
 		{
 			shouldBreak: node.preNewLines > 0,
-		}
+		},
 	);
 
 	return node.preNewLines > 1
@@ -61,7 +74,7 @@ const printStatement = (node: Statement): builders.Doc => {
 				? [builders.hardline, node.delimiter, "%}"]
 				: [node.delimiter, "%}"],
 		]),
-		{ shouldBreak: node.preNewLines > 0 }
+		{ shouldBreak: node.preNewLines > 0 },
 	);
 
 	if (
@@ -87,76 +100,80 @@ const printIgnoreBlock = (node: Node): builders.Doc => {
 	return node.content;
 };
 
-export const embed: Printer<Node>["embed"] = (
-	path,
-	print,
-	textToDoc,
-	options
-) => {
+export const embed: Printer<Node>["embed"] = () => {
+	return _embed;
+};
+
+const _embed = async (
+	textToDoc: (text: string, options: Options) => Promise<Doc>,
+	print: (selector?: string | number | Array<string | number> | AstPath) => Doc,
+	path: AstPath,
+	options: Options,
+): Promise<Doc | undefined> => {
 	const node = path.getNode();
 	if (!node || !["root", "block"].includes(node.type)) {
-		return null;
+		return undefined;
 	}
 
-	const mapped = splitAtElse(node).map((content) => {
-		let doc;
-		if (content in node.nodes) {
-			doc = content;
-		} else {
-			doc = utils.stripTrailingHardline(
-				textToDoc(content, {
+	const mapped = await Promise.all(
+		splitAtElse(node).map(async (content) => {
+			let doc;
+			if (content in node.nodes) {
+				doc = content;
+			} else {
+				doc = await textToDoc(content, {
 					...options,
 					parser: "html",
-				})
-			);
-		}
-
-		let ignoreDoc = false;
-
-		return utils.mapDoc(doc, (currentDoc) => {
-			if (typeof currentDoc !== "string") {
-				return currentDoc;
+				});
 			}
 
-			if (currentDoc === "<!-- prettier-ignore -->") {
-				ignoreDoc = true;
-				return currentDoc;
-			}
+			let ignoreDoc = false;
 
-			const idxs = findPlaceholders(currentDoc).filter(
-				([start, end]) => currentDoc.slice(start, end + 1) in node.nodes
-			);
-			if (!idxs.length) {
+			return utils.mapDoc(doc, (currentDoc) => {
+				if (typeof currentDoc !== "string") {
+					return currentDoc;
+				}
+
+				if (currentDoc === "<!-- prettier-ignore -->") {
+					ignoreDoc = true;
+					return currentDoc;
+				}
+
+				const idxs = findPlaceholders(currentDoc).filter(
+					([start, end]) => currentDoc.slice(start, end + 1) in node.nodes,
+				);
+				if (!idxs.length) {
+					ignoreDoc = false;
+					return currentDoc;
+				}
+
+				const res: builders.Doc = [];
+				let lastEnd = 0;
+				for (const [start, end] of idxs) {
+					if (lastEnd < start) {
+						res.push(currentDoc.slice(lastEnd, start));
+					}
+
+					const p = currentDoc.slice(start, end + 1) as string;
+
+					if (ignoreDoc) {
+						res.push(node.nodes[p].originalText);
+					} else {
+						res.push(path.call(print, "nodes", p));
+					}
+
+					lastEnd = end + 1;
+				}
+
+				if (lastEnd > 0 && currentDoc.length > lastEnd) {
+					res.push(currentDoc.slice(lastEnd));
+				}
+
 				ignoreDoc = false;
-				return currentDoc;
-			}
-
-			const res: builders.Doc = [];
-			let lastEnd = 0;
-			for (const [start, end] of idxs) {
-				if (lastEnd < start) {
-					res.push(currentDoc.slice(lastEnd, start));
-				}
-
-				const p = currentDoc.slice(start, end + 1) as string;
-
-				if (ignoreDoc) {
-					res.push(node.nodes[p].originalText);
-				} else {
-					res.push(path.call(print, "nodes", p));
-				}
-
-				lastEnd = end + 1;
-			}
-
-			if (lastEnd > 0 && currentDoc.length > lastEnd) {
-				res.push(currentDoc.slice(lastEnd));
-			}
-
-			ignoreDoc = false;
-			return res;
-		});
-	});
+				return res;
+			});
+		}),
+	);
 
 	if (node.type === "block") {
 		const block = buildBlock(path, print, node as Block, mapped);
@@ -172,7 +189,7 @@ const getMultilineGroup = (content: String): builders.Group => {
 	return builders.group(
 		content.split("\n").map((line, i) => {
 			return [builders.hardline, line.trim()];
-		})
+		}),
 	);
 };
 
@@ -181,7 +198,7 @@ const splitAtElse = (node: Node): string[] => {
 		(n) =>
 			n.type === "statement" &&
 			["else", "elif"].includes((n as Statement).keyword) &&
-			node.content.search(n.id) !== NOT_FOUND
+			node.content.search(n.id) !== NOT_FOUND,
 	);
 	if (!elseNodes.length) {
 		return [node.content];
@@ -218,7 +235,7 @@ export const findPlaceholders = (text: string): [number, number][] => {
 
 export const surroundingBlock = (node: Node): Block | undefined => {
 	return Object.values(node.nodes).find(
-		(n) => n.type === "block" && n.content.search(node.id) !== NOT_FOUND
+		(n) => n.type === "block" && n.content.search(node.id) !== NOT_FOUND,
 	) as Block;
 };
 
@@ -226,7 +243,7 @@ const buildBlock = (
 	path: AstPath<Node>,
 	print: (path: AstPath<Node>) => builders.Doc,
 	block: Block,
-	mapped: (string | builders.Doc[] | builders.DocCommand)[]
+	mapped: (string | builders.Doc[] | builders.DocCommand)[],
 ): builders.Doc => {
 	// if the content is empty or whitespace only.
 	if (block.content.match(/^\s*$/)) {
@@ -239,14 +256,14 @@ const buildBlock = (
 	if (block.containsNewLines) {
 		return builders.group([
 			path.call(print, "nodes", block.start.id),
-			builders.indent([builders.softline, utils.stripTrailingHardline(mapped)]),
+			builders.indent([builders.softline, mapped]),
 			builders.hardline,
 			path.call(print, "nodes", block.end.id),
 		]);
 	}
 	return builders.group([
 		path.call(print, "nodes", block.start.id),
-		utils.stripTrailingHardline(mapped),
+		mapped,
 		path.call(print, "nodes", block.end.id),
 	]);
 };

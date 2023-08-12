@@ -1,6 +1,6 @@
 import { Node } from "./jinja";
 import { parse } from "./parser";
-import { print, embed } from "./printer";
+import { print, embed, getVisitorKeys } from "./printer";
 import { Parser, Printer, SupportLanguage } from "prettier";
 
 const PLUGIN_KEY = "jinja-template";
@@ -27,5 +27,6 @@ export const printers = {
 	[PLUGIN_KEY]: <Printer<Node>>{
 		print,
 		embed,
+		getVisitorKeys,
 	},
 };
