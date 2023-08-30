@@ -26,7 +26,7 @@
 		"build": "tsc",
 		"watch": "npm run build -- --watch",
 		"test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose",
-		"test:watch": "jest --watch --verbose",
+		"test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch --verbose",
 		"publish:release": "npm run test && npm run build && npm publish"
 	},
 	"devDependencies": {
