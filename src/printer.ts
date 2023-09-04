@@ -1,6 +1,7 @@
-import { AstPath, Printer, Options, Doc } from "prettier";
+import { AstPath, Printer, Doc, Options } from "prettier";
 import { builders, utils } from "prettier/doc";
 import { Placeholder, Node, Expression, Statement, Block } from "./jinja";
+import { extendedOptions } from "./index";
 
 const NOT_FOUND = -1;
 
@@ -101,88 +102,96 @@ const printIgnoreBlock = (node: Node): builders.Doc => {
 };
 
 export const embed: Printer<Node>["embed"] = () => {
-	return _embed;
-};
+	return async (
+		textToDoc: (text: string, options: Options) => Promise<Doc>,
+		print: (
+			selector?: string | number | Array<string | number> | AstPath,
+		) => Doc,
+		path: AstPath,
+		options: Options,
+	): Promise<Doc | undefined> => {
+		const node = path.getNode();
+		if (!node || !["root", "block"].includes(node.type)) {
+			return undefined;
+		}
 
-const _embed = async (
-	textToDoc: (text: string, options: Options) => Promise<Doc>,
-	print: (selector?: string | number | Array<string | number> | AstPath) => Doc,
-	path: AstPath,
-	options: Options,
-): Promise<Doc | undefined> => {
-	const node = path.getNode();
-	if (!node || !["root", "block"].includes(node.type)) {
-		return undefined;
-	}
+		const mapped = await Promise.all(
+			splitAtElse(node).map(async (content) => {
+				let doc;
+				if (content in node.nodes) {
+					doc = content;
+				} else {
+					/**
+					 * The lwc parser is the same as the "html" parser,
+					 * but also formats LWC-specific syntax for unquoted template attributes.
+					 */
+					const parser = (options as extendedOptions).quoteAttributes
+						? "html"
+						: "lwc";
 
-	const mapped = await Promise.all(
-		splitAtElse(node).map(async (content) => {
-			let doc;
-			if (content in node.nodes) {
-				doc = content;
-			} else {
-				doc = await textToDoc(content, {
-					...options,
-					parser: "html",
-				});
-			}
-
-			let ignoreDoc = false;
-
-			return utils.mapDoc(doc, (currentDoc) => {
-				if (typeof currentDoc !== "string") {
-					return currentDoc;
+					doc = await textToDoc(content, {
+						...options,
+						parser,
+					});
 				}
 
-				if (currentDoc === "<!-- prettier-ignore -->") {
-					ignoreDoc = true;
-					return currentDoc;
-				}
+				let ignoreDoc = false;
 
-				const idxs = findPlaceholders(currentDoc).filter(
-					([start, end]) => currentDoc.slice(start, end + 1) in node.nodes,
-				);
-				if (!idxs.length) {
+				return utils.mapDoc(doc, (currentDoc) => {
+					if (typeof currentDoc !== "string") {
+						return currentDoc;
+					}
+
+					if (currentDoc === "<!-- prettier-ignore -->") {
+						ignoreDoc = true;
+						return currentDoc;
+					}
+
+					const idxs = findPlaceholders(currentDoc).filter(
+						([start, end]) => currentDoc.slice(start, end + 1) in node.nodes,
+					);
+					if (!idxs.length) {
+						ignoreDoc = false;
+						return currentDoc;
+					}
+
+					const res: builders.Doc = [];
+					let lastEnd = 0;
+					for (const [start, end] of idxs) {
+						if (lastEnd < start) {
+							res.push(currentDoc.slice(lastEnd, start));
+						}
+
+						const p = currentDoc.slice(start, end + 1) as string;
+
+						if (ignoreDoc) {
+							res.push(node.nodes[p].originalText);
+						} else {
+							res.push(path.call(print, "nodes", p));
+						}
+
+						lastEnd = end + 1;
+					}
+
+					if (lastEnd > 0 && currentDoc.length > lastEnd) {
+						res.push(currentDoc.slice(lastEnd));
+					}
+
 					ignoreDoc = false;
-					return currentDoc;
-				}
+					return res;
+				});
+			}),
+		);
 
-				const res: builders.Doc = [];
-				let lastEnd = 0;
-				for (const [start, end] of idxs) {
-					if (lastEnd < start) {
-						res.push(currentDoc.slice(lastEnd, start));
-					}
+		if (node.type === "block") {
+			const block = buildBlock(path, print, node as Block, mapped);
 
-					const p = currentDoc.slice(start, end + 1) as string;
-
-					if (ignoreDoc) {
-						res.push(node.nodes[p].originalText);
-					} else {
-						res.push(path.call(print, "nodes", p));
-					}
-
-					lastEnd = end + 1;
-				}
-
-				if (lastEnd > 0 && currentDoc.length > lastEnd) {
-					res.push(currentDoc.slice(lastEnd));
-				}
-
-				ignoreDoc = false;
-				return res;
-			});
-		}),
-	);
-
-	if (node.type === "block") {
-		const block = buildBlock(path, print, node as Block, mapped);
-
-		return node.preNewLines > 1
-			? builders.group([builders.trim, builders.hardline, block])
-			: block;
-	}
-	return [...mapped, builders.hardline];
+			return node.preNewLines > 1
+				? builders.group([builders.trim, builders.hardline, block])
+				: block;
+		}
+		return [...mapped, builders.hardline];
+	};
 };
 
 const getMultilineGroup = (content: String): builders.Group => {

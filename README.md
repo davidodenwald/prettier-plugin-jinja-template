@@ -40,3 +40,25 @@ If you don't have a prettier config you can run the plugin with this command:
 ```bash
 npx prettier --write **/*.html --plugin=prettier-plugin-jinja-template
 ```
+
+## Options
+
+This Plugin provides additional options:
+
+### Quote Attributes
+
+Surrounds the value of html attributes with quotes. This option was introduced to support [JinjaX](https://jinjax.scaletti.dev/) syntax.
+
+`true` - Example:
+```js
+<Paginator items="{products}" />
+```
+
+`false` - Example:
+```js
+<Paginator items={products} />
+```
+
+| Default | CLI Override            | API Override              |
+| ------- | ----------------------- | ------------------------- |
+| `true`  | `--no-quote-attributes` | `quoteAttributes: <bool>` |
