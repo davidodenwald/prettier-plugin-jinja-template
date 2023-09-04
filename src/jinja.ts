@@ -33,13 +33,3 @@ export interface Block extends Node {
 	end: Statement;
 	containsNewLines: boolean;
 }
-
-export const nonClosingStatements = [
-	"else",
-	"elif",
-	"include",
-	"import",
-	"from",
-	"extends",
-	"pluralize",
-];

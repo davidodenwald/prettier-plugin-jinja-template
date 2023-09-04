@@ -6,7 +6,6 @@ import {
 	Expression,
 	Statement,
 	Block,
-	nonClosingStatements,
 } from "./jinja";
 
 const NOT_FOUND = -1;
@@ -98,46 +97,21 @@ export const parse: Parser<Node>["parse"] = (text) => {
 			const delimiter = (match.groups.startDelimiter ||
 				match.groups.endDelimiter) as Delimiter;
 
-			if (nonClosingStatements.includes(keyword)) {
-				root.content = root.content.replace(matchText, placeholder);
-				root.nodes[node.id] = {
-					...node,
-					type: "statement",
-					content: statement,
-					keyword,
-					delimiter,
-				} as Statement;
-			} else if (!keyword.startsWith("end")) {
-				root.nodes[node.id] = {
-					...node,
-					type: "statement",
-					content: statement,
-					keyword,
-					delimiter,
-				} as Statement;
-				statementStack.push(root.nodes[placeholder] as Statement);
-			} else {
+			if (keyword.startsWith("end")) {
 				let start: Statement | undefined;
 				while (!start) {
 					start = statementStack.pop();
 
 					if (!start) {
 						throw new Error(
-							`No opening statement found for closing statement "${statement}".`
+							`No opening statement found for closing statement "{% ${statement} %}".`,
 						);
 					}
 
-					const startKeyword = keyword.replace("end", "");
-					if (startKeyword !== start.keyword) {
-						if (start.keyword === "set") {
-							root.content = root.content.replace(start.originalText, start.id);
-							start = undefined;
-							continue;
-						}
-
-						throw new Error(
-							`Closing statement "${statement}" doesn't match Opening Statement "${start.content}".`
-						);
+					if (keyword.replace("end", "") !== start.keyword) {
+						root.content = root.content.replace(start.originalText, start.id);
+						start = undefined;
+						continue;
 					}
 				}
 
@@ -152,7 +126,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 
 				const blockText = root.content.slice(
 					root.content.indexOf(start.originalText),
-					root.content.indexOf(end.originalText) + end.length
+					root.content.indexOf(end.originalText) + end.length,
 				);
 
 				const originalText = text.slice(start.index, end.index + end.length);
@@ -172,6 +146,15 @@ export const parse: Parser<Node>["parse"] = (text) => {
 				root.nodes[block.id] = block;
 
 				root.content = root.content.replace(blockText, block.id);
+			} else {
+				root.nodes[node.id] = {
+					...node,
+					type: "statement",
+					content: statement,
+					keyword,
+					delimiter,
+				} as Statement;
+				statementStack.push(root.nodes[placeholder] as Statement);
 			}
 		}
 
@@ -179,13 +162,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 	}
 
 	for (const stmt of statementStack) {
-		if (stmt.keyword === "set") {
-			root.content = root.content.replace(stmt.originalText, stmt.id);
-		} else {
-			throw new Error(
-				`No closing statement found for opening statement "${stmt.content}".`
-			);
-		}
+		root.content = root.content.replace(stmt.originalText, stmt.id);
 	}
 
 	return root;
