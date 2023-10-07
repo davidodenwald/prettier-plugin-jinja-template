@@ -41,6 +41,24 @@ If you don't have a prettier config you can run the plugin with this command:
 npx prettier --write **/*.html --plugin=prettier-plugin-jinja-template
 ```
 
+### Ignoring Code
+
+Using range ignores is the best way to tell prettier to igone part of files. Most of the time this is necessary for Jinja tags inside `script` or `style` tags:
+
+```html
+<!-- prettier-ignore-start -->
+  <script>
+    window.someData = {{ data | safe }}
+  </script>
+<!-- prettier-ignore-end -->
+
+<!-- prettier-ignore-start -->
+  <style>
+    :root { --accent-color: {{ theme_accent_color }} }
+  </style>
+<!-- prettier-ignore-end -->
+```
+
 ## Options
 
 This Plugin provides additional options:
