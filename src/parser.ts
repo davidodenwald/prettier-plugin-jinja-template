@@ -31,7 +31,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 
 	let match;
 	let i = 0;
-	while ((match = text.slice(i).match(regex)) !== null) {
+	while ((match = root.content.slice(i).match(regex)) !== null) {
 		if (!match.groups || match.index === undefined) {
 			continue;
 		}
@@ -54,9 +54,9 @@ export const parse: Parser<Node>["parse"] = (text) => {
 		}
 		const placeholder = generatePlaceholder();
 
-		const emptyLinesBetween = text.slice(i, i + match.index).match(/^\s+$/) || [
-			"",
-		];
+		const emptyLinesBetween = root.content
+			.slice(i, i + match.index)
+			.match(/^\s+$/) || [""];
 		const preNewLines = emptyLinesBetween.length
 			? emptyLinesBetween[0].split("\n").length - 1
 			: 0;
@@ -71,25 +71,39 @@ export const parse: Parser<Node>["parse"] = (text) => {
 		};
 
 		if (comment || ignoreBlock) {
-			root.content = root.content.replace(matchText, placeholder);
+			root.content = replaceAt(
+				root.content,
+				placeholder,
+				match.index + i,
+				matchLength,
+			);
 			root.nodes[node.id] = {
 				...node,
 				type: comment ? "comment" : "ignore",
 				content: comment || ignoreBlock,
 			};
+
+			i += match.index + placeholder.length;
 		}
 
 		if (expression) {
 			const delimiter = (match.groups.startDelimiterEx ||
 				match.groups.endDelimiterEx) as Delimiter;
 
-			root.content = root.content.replace(matchText, placeholder);
+			root.content = replaceAt(
+				root.content,
+				placeholder,
+				match.index + i,
+				matchLength,
+			);
 			root.nodes[node.id] = {
 				...node,
 				type: "expression",
 				content: expression,
 				delimiter,
 			} as Expression;
+
+			i += match.index + placeholder.length;
 		}
 
 		if (statement) {
@@ -109,7 +123,14 @@ export const parse: Parser<Node>["parse"] = (text) => {
 					}
 
 					if (keyword.replace("end", "") !== start.keyword) {
-						root.content = root.content.replace(start.originalText, start.id);
+						root.content = replaceAt(
+							root.content,
+							start.id,
+							start.index,
+							start.length,
+						);
+						i += start.id.length - start.length;
+
 						start = undefined;
 						continue;
 					}
@@ -117,6 +138,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 
 				const end = {
 					...node,
+					index: match.index + i,
 					type: "statement",
 					content: statement,
 					keyword,
@@ -129,7 +151,10 @@ export const parse: Parser<Node>["parse"] = (text) => {
 					root.content.indexOf(end.originalText) + end.length,
 				);
 
-				const originalText = text.slice(start.index, end.index + end.length);
+				const originalText = root.content.slice(
+					start.index,
+					end.index + end.length,
+				);
 				const block = {
 					id: generatePlaceholder(),
 					type: "block",
@@ -145,7 +170,14 @@ export const parse: Parser<Node>["parse"] = (text) => {
 				} as Block;
 				root.nodes[block.id] = block;
 
-				root.content = root.content.replace(blockText, block.id);
+				root.content = replaceAt(
+					root.content,
+					block.id,
+					start.index,
+					originalText.length,
+				);
+
+				i += match.index + block.id.length + end.length - blockText.length;
 			} else {
 				root.nodes[node.id] = {
 					...node,
@@ -155,10 +187,10 @@ export const parse: Parser<Node>["parse"] = (text) => {
 					delimiter,
 				} as Statement;
 				statementStack.push(root.nodes[placeholder] as Statement);
+
+				i += match.index + matchLength;
 			}
 		}
-
-		i += match.index + matchLength;
 	}
 
 	for (const stmt of statementStack) {
@@ -181,4 +213,13 @@ const placeholderGenerator = (text: string) => {
 			}
 		}
 	};
+};
+
+const replaceAt = (
+	str: string,
+	replacement: string,
+	start: number,
+	length: number,
+): string => {
+	return str.slice(0, start) + replacement + str.slice(start + length);
 };
