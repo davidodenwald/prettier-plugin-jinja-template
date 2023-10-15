@@ -122,7 +122,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 						);
 					}
 
-					if (keyword.replace("end", "") !== start.keyword) {
+					if (keyword.replace(/end_?/, "") !== start.keyword) {
 						root.content = replaceAt(
 							root.content,
 							start.id,
