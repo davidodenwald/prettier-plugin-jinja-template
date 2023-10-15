@@ -27,7 +27,7 @@
 		"watch": "npm run build -- --watch",
 		"test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose",
 		"test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch --verbose",
-		"publish:release": "npm run test && npm run build && npm publish"
+		"prepublishOnly": "npm run test && npm run build"
 	},
 	"devDependencies": {
 		"@babel/preset-typescript": "^7.22.5",
