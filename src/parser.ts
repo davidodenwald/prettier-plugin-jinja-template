@@ -146,11 +146,6 @@ export const parse: Parser<Node>["parse"] = (text) => {
 				} as Statement;
 				root.nodes[end.id] = end;
 
-				const blockText = root.content.slice(
-					root.content.indexOf(start.originalText),
-					root.content.indexOf(end.originalText) + end.length,
-				);
-
 				const originalText = root.content.slice(
 					start.index,
 					end.index + end.length,
@@ -160,7 +155,10 @@ export const parse: Parser<Node>["parse"] = (text) => {
 					type: "block",
 					start: start,
 					end: end,
-					content: blockText.slice(start.length, blockText.length - end.length),
+					content: originalText.slice(
+						start.length,
+						originalText.length - end.length,
+					),
 					preNewLines: start.preNewLines,
 					containsNewLines: originalText.search("\n") !== NOT_FOUND,
 					originalText,
@@ -177,7 +175,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 					originalText.length,
 				);
 
-				i += match.index + block.id.length + end.length - blockText.length;
+				i += match.index + block.id.length + end.length - originalText.length;
 			} else {
 				root.nodes[node.id] = {
 					...node,
