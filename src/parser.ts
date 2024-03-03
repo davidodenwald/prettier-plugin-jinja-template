@@ -70,7 +70,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 			nodes: root.nodes,
 		};
 
-		if (comment || ignoreBlock) {
+		if (comment != undefined || ignoreBlock != undefined) {
 			root.content = replaceAt(
 				root.content,
 				placeholder,
@@ -86,7 +86,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 			i += match.index + placeholder.length;
 		}
 
-		if (expression) {
+		if (expression != undefined) {
 			const delimiter = (match.groups.startDelimiterEx ||
 				match.groups.endDelimiterEx) as Delimiter;
 
@@ -106,7 +106,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 			i += match.index + placeholder.length;
 		}
 
-		if (statement) {
+		if (statement != undefined) {
 			const keyword = match.groups.keyword;
 			const delimiter = (match.groups.startDelimiter ||
 				match.groups.endDelimiter) as Delimiter;
