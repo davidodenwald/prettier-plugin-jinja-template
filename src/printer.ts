@@ -1,7 +1,7 @@
-import { AstPath, Printer, Doc, Options } from "prettier";
+import { AstPath, Doc, Options, Printer } from "prettier";
 import { builders, utils } from "prettier/doc";
-import { Placeholder, Node, Expression, Statement, Block } from "./jinja";
 import { extendedOptions } from "./index";
+import { Block, Expression, Node, Placeholder, Statement } from "./jinja";
 
 const NOT_FOUND = -1;
 
@@ -195,10 +195,24 @@ export const embed: Printer<Node>["embed"] = () => {
 };
 
 const getMultilineGroup = (content: String): builders.Group => {
+	// Dedent the content by the minimum indentation of any non-blank lines.
+	const lines = content.split("\n");
+	const minIndent = Math.min(
+		...lines
+			.slice(1) // can't be the first line
+			.filter((line) => line.trim())
+			.map((line) => line.search(/\S/)),
+	);
+
 	return builders.group(
-		content.split("\n").map((line, i) => {
-			return [builders.hardline, line.trim()];
-		}),
+		lines.map((line, i) => [
+			builders.hardline,
+			i === 0
+				? line.trim() // don't dedent the first line
+				: line.trim()
+					? line.slice(minIndent).trimEnd()
+					: "",
+		]),
 	);
 };
 
