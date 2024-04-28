@@ -38,7 +38,7 @@ npx prettier --write **/*.html
 
 If you don't have a prettier config you can run the plugin with this command:
 ```bash
-npx prettier --write **/*.html --plugin=prettier-plugin-jinja-template
+npx prettier --plugin=prettier-plugin-jinja-template --parser=jinja-template --write **/*.html
 ```
 
 ### Ignoring Code
