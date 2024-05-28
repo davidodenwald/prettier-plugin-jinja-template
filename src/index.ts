@@ -16,7 +16,7 @@ export const languages: SupportLanguage[] = [
 		name: "JinjaTemplate",
 		parsers: [PLUGIN_KEY],
 		extensions: [".jinja", ".jinja2", ".j2", ".html"],
-		vscodeLanguageIds: ["jinja"],
+		vscodeLanguageIds: ["jinja", "jinja-html"],
 	},
 ];
 
