@@ -87,8 +87,10 @@ export const parse: Parser<Node>["parse"] = (text) => {
 		}
 
 		if (expression != undefined) {
-			const delimiter = (match.groups.startDelimiterEx ||
-				match.groups.endDelimiterEx) as Delimiter;
+			const delimiter = {
+				start: match.groups.startDelimiterEx,
+				end: match.groups.endDelimiterEx,
+			};
 
 			root.content = replaceAt(
 				root.content,
@@ -108,8 +110,10 @@ export const parse: Parser<Node>["parse"] = (text) => {
 
 		if (statement != undefined) {
 			const keyword = match.groups.keyword;
-			const delimiter = (match.groups.startDelimiter ||
-				match.groups.endDelimiter) as Delimiter;
+			const delimiter = {
+				start: match.groups.startDelimiter,
+				end: match.groups.endDelimiter,
+			};
 
 			if (keyword.startsWith("end")) {
 				let start: Statement | undefined;

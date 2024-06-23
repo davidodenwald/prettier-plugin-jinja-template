@@ -44,13 +44,13 @@ const printExpression = (node: Expression): builders.Doc => {
 
 	const expression = builders.group(
 		builders.join(" ", [
-			["{{", node.delimiter],
+			["{{", node.delimiter.start],
 			multiline
 				? builders.indent(getMultilineGroup(node.content))
 				: node.content,
 			multiline
-				? [builders.hardline, node.delimiter, "}}"]
-				: [node.delimiter, "}}"],
+				? [builders.hardline, node.delimiter.end, "}}"]
+				: [node.delimiter.end, "}}"],
 		]),
 		{
 			shouldBreak: node.preNewLines > 0,
@@ -67,13 +67,13 @@ const printStatement = (node: Statement): builders.Doc => {
 
 	const statemnt = builders.group(
 		builders.join(" ", [
-			["{%", node.delimiter],
+			["{%", node.delimiter.start],
 			multiline
 				? builders.indent(getMultilineGroup(node.content))
 				: node.content,
 			multiline
-				? [builders.hardline, node.delimiter, "%}"]
-				: [node.delimiter, "%}"],
+				? [builders.hardline, node.delimiter.end, "%}"]
+				: [node.delimiter.end, "%}"],
 		]),
 		{ shouldBreak: node.preNewLines > 0 },
 	);

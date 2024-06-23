@@ -14,12 +14,16 @@ export interface Node {
 	nodes: { [id: string]: Node };
 }
 
+type DelimiterChr = "" | "-" | "+";
+export type Delimiter = {
+	start: DelimiterChr;
+	end: DelimiterChr;
+};
+
 export interface Expression extends Node {
 	type: "expression";
 	delimiter: Delimiter;
 }
-
-export type Delimiter = "" | "-" | "+";
 
 export interface Statement extends Node {
 	type: "statement";
