@@ -59,6 +59,21 @@ Using range ignores is the best way to tell prettier to igone part of files. Mos
 <!-- prettier-ignore-end -->
 ```
 
+Or using Jinja comments:
+```jinja
+{# prettier-ignore-start #}
+  <script>
+    window.someData = {{ data | safe }}
+  </script>
+{# prettier-ignore-end #}
+
+{# prettier-ignore-start #}
+  <style>
+    :root { --accent-color: {{ theme_accent_color }} }
+  </style>
+{# prettier-ignore-end #}
+```
+
 ## Options
 
 This Plugin provides additional options:
