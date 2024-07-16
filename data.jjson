@@ -1,0 +1,12 @@
+{
+captions: [
+{% for href, caption in [
+  ('index.html', 'Index'),
+  ('about.html', 'About'),
+  ('downloads.html', 'Downloads')
+]
+%}
+{ href: {{ href }},caption: {{ caption }}}
+{% endfor %}
+]
+}

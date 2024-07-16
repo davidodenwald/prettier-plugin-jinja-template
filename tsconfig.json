@@ -1,14 +1,23 @@
 {
-	"compilerOptions": {
-		"outDir": "./lib",
-		"target": "esnext",
-		"module": "NodeNext",
-		"moduleResolution": "NodeNext",
-		"lib": ["esnext"],
-		"declaration": true,
-		"strictNullChecks": true,
-		"strict": true
-	},
-	"include": ["src/**/*"],
-	"exclude": ["node_modules", "test"]
+  "compilerOptions": {
+    "outDir": "./lib",
+    "target": "esnext",
+    "moduleResolution": "node",
+    "lib": [
+      "esnext"
+    ],
+    "declaration": true,
+    "strictNullChecks": true,
+    "strict": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "test"
+  ]
 }

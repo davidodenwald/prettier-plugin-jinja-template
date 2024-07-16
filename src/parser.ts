@@ -1,17 +1,10 @@
 import { Parser } from "prettier";
-import {
-	Delimiter,
-	Node,
-	Placeholder,
-	Expression,
-	Statement,
-	Block,
-} from "./jinja";
+import { Node, Placeholder, Expression, Statement, Block } from "./jinja";
 
 const NOT_FOUND = -1;
 
 const regex =
-	/(?<node>{{(?<startDelimiterEx>[-+]?)\s*(?<expression>'([^']|\\')*'|"([^"]|\\")*"|[\S\s]*?)\s*(?<endDelimiterEx>[-+]?)}}|{%(?<startDelimiter>[-+]?)\s*(?<statement>(?<keyword>\w+)('([^']|\\')*'|"([^"]|\\")*"|[\S\s])*?)\s*(?<endDelimiter>[-+]?)%}|(?<comment>{#[\S\s]*?#})|(?<scriptBlock><(script)((?!<)[\s\S])*>((?!<\/script)[\s\S])*?{{[\s\S]*?<\/(script)>)|(?<styleBlock><(style)((?!<)[\s\S])*>((?!<\/style)[\s\S])*?{{[\s\S]*?<\/(style)>)|(?<ignoreBlock><!-- prettier-ignore-start -->[\s\S]*<!-- prettier-ignore-end -->))/;
+	/(?<node>{{(?<startDelimiterEx>[-+]?)\s*(?<expression>'([^']|\\')*'|"([^"]|\\")*"|[\S\s]*?)\s*(?<endDelimiterEx>[-+]?)}}|{%(?<startDelimiter>[-+]?)\s*(?<statement>(?<keyword>\w+)('([^']|\\')*'|"([^"]|\\")*"|[\S\s])*?)\s*(?<endDelimiter>[-+]?)%}|(?<comment>{#[\S\s]*?#}))/;
 
 export const parse: Parser<Node>["parse"] = (text) => {
 	const statementStack: Statement[] = [];
@@ -37,12 +30,6 @@ export const parse: Parser<Node>["parse"] = (text) => {
 		}
 		const matchLength = match[0].length;
 
-		// skip script and style blocks
-		if (match.groups.scriptBlock || match.groups.styleBlock) {
-			i += match.index + matchLength;
-			continue;
-		}
-
 		const matchText = match.groups.node;
 		const expression = match.groups.expression;
 		const statement = match.groups.statement;
@@ -52,11 +39,13 @@ export const parse: Parser<Node>["parse"] = (text) => {
 		if (!matchText && !expression && !statement && !ignoreBlock && !comment) {
 			continue;
 		}
+
 		const placeholder = generatePlaceholder();
 
 		const emptyLinesBetween = root.content
 			.slice(i, i + match.index)
 			.match(/^\s+$/) || [""];
+
 		const preNewLines = emptyLinesBetween.length
 			? emptyLinesBetween[0].split("\n").length - 1
 			: 0;
@@ -126,7 +115,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 						);
 					}
 
-					if (keyword.replace(/end_?/, "") !== start.keyword) {
+					if (keyword.replace("end", "") !== start.keyword) {
 						root.content = replaceAt(
 							root.content,
 							start.id,
@@ -148,12 +137,14 @@ export const parse: Parser<Node>["parse"] = (text) => {
 					keyword,
 					delimiter,
 				} as Statement;
+
 				root.nodes[end.id] = end;
 
 				const originalText = root.content.slice(
 					start.index,
 					end.index + end.length,
 				);
+
 				const block = {
 					id: generatePlaceholder(),
 					type: "block",
@@ -170,6 +161,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 					length: end.index + end.length - start.index,
 					nodes: root.nodes,
 				} as Block;
+
 				root.nodes[block.id] = block;
 
 				root.content = replaceAt(
@@ -188,6 +180,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 					keyword,
 					delimiter,
 				} as Statement;
+
 				statementStack.push(root.nodes[placeholder] as Statement);
 
 				i += match.index + matchLength;

@@ -1,11 +1,8 @@
 import { AstPath, Doc, Options, Printer } from "prettier";
 import { builders, utils } from "prettier/doc";
-import { extendedOptions } from "./index";
 import { Block, Expression, Node, Placeholder, Statement } from "./jinja";
 
 const NOT_FOUND = -1;
-
-process.env.PRETTIER_DEBUG = "true";
 
 export const getVisitorKeys = (
 	ast: Node | { [id: string]: Node },
@@ -13,7 +10,7 @@ export const getVisitorKeys = (
 	if ("type" in ast) {
 		return ast.type === "root" ? ["nodes"] : [];
 	}
-	return Object.values(ast)
+	return Object.values<Node>(ast)
 		.filter((node) => {
 			return node.type === "block";
 		})
@@ -111,6 +108,7 @@ export const embed: Printer<Node>["embed"] = () => {
 		options: Options,
 	): Promise<Doc | undefined> => {
 		const node = path.getNode();
+
 		if (!node || !["root", "block"].includes(node.type)) {
 			return undefined;
 		}
@@ -118,21 +116,14 @@ export const embed: Printer<Node>["embed"] = () => {
 		const mapped = await Promise.all(
 			splitAtElse(node).map(async (content) => {
 				let doc;
-				if (content in node.nodes) {
-					doc = content;
-				} else {
-					/**
-					 * The lwc parser is the same as the "html" parser,
-					 * but also formats LWC-specific syntax for unquoted template attributes.
-					 */
-					const parser = (options as extendedOptions).quoteAttributes
-						? "html"
-						: "lwc";
 
+				try {
 					doc = await textToDoc(content, {
 						...options,
-						parser,
+						parser: "json",
 					});
+				} catch (e) {
+					doc = content;
 				}
 
 				let ignoreDoc = false;
@@ -142,14 +133,10 @@ export const embed: Printer<Node>["embed"] = () => {
 						return currentDoc;
 					}
 
-					if (currentDoc === "<!-- prettier-ignore -->") {
-						ignoreDoc = true;
-						return currentDoc;
-					}
-
 					const idxs = findPlaceholders(currentDoc).filter(
 						([start, end]) => currentDoc.slice(start, end + 1) in node.nodes,
 					);
+
 					if (!idxs.length) {
 						ignoreDoc = false;
 						return currentDoc;
@@ -157,6 +144,7 @@ export const embed: Printer<Node>["embed"] = () => {
 
 					const res: builders.Doc = [];
 					let lastEnd = 0;
+
 					for (const [start, end] of idxs) {
 						if (lastEnd < start) {
 							res.push(currentDoc.slice(lastEnd, start));
@@ -217,7 +205,7 @@ const getMultilineGroup = (content: String): builders.Group => {
 };
 
 const splitAtElse = (node: Node): string[] => {
-	const elseNodes = Object.values(node.nodes).filter(
+	const elseNodes = Object.values<Node>(node.nodes).filter(
 		(n) =>
 			n.type === "statement" &&
 			["else", "elif"].includes((n as Statement).keyword) &&
@@ -257,7 +245,7 @@ export const findPlaceholders = (text: string): [number, number][] => {
 };
 
 export const surroundingBlock = (node: Node): Block | undefined => {
-	return Object.values(node.nodes).find(
+	return Object.values<Node>(node.nodes).find(
 		(n) => n.type === "block" && n.content.search(node.id) !== NOT_FOUND,
 	) as Block;
 };

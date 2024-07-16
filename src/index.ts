@@ -7,9 +7,11 @@ import {
 	SupportLanguage,
 	SupportOptions,
 	ParserOptions,
+	format,
 } from "prettier";
+import { readFileSync } from "fs";
 
-const PLUGIN_KEY = "jinja-template";
+export const PLUGIN_KEY = "jinja-template";
 
 export const languages: SupportLanguage[] = [
 	{
@@ -37,15 +39,17 @@ export const printers = {
 	},
 };
 
-export type extendedOptions = ParserOptions<Node> & {
-	quoteAttributes: boolean;
-};
+export type extendedOptions = ParserOptions<Node>;
 
-export const options: SupportOptions = {
-	quoteAttributes: {
-		type: "boolean",
-		category: PLUGIN_KEY,
-		default: true,
-		description: "Surrounds the value of html attributes with quotes.",
-	},
-};
+export const options: SupportOptions = {};
+
+(async () => {
+	const plugin = {
+		languages,
+		parsers,
+		printers,
+		options,
+	};
+	const data = readFileSync("./data.jjson").toString();
+	console.log(await format(data, { parser: PLUGIN_KEY, plugins: [plugin] }));
+})();

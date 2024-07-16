@@ -1,6 +1,6 @@
 export const Placeholder = {
-	startToken: "#~",
-	endToken: "~#",
+	startToken: "`~",
+	endToken: "~`",
 };
 
 export interface Node {
