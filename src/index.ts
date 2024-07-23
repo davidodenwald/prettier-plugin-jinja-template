@@ -42,19 +42,3 @@ export const printers = {
 export type extendedOptions = ParserOptions<Node>;
 
 export const options: SupportOptions = {};
-
-(async () => {
-	const plugin = {
-		languages,
-		parsers,
-		printers,
-		options,
-	};
-	const data = readFileSync("./data.jjson").toString();
-	console.log(
-		await format(data, {
-			parser: PLUGIN_KEY,
-			plugins: [plugin],
-		}),
-	);
-})();
