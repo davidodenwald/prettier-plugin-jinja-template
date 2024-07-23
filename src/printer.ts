@@ -1,6 +1,8 @@
-import { AstPath, Doc, Options, Printer } from "prettier";
+import { AstPath, Doc, Printer } from "prettier";
 import { builders, utils } from "prettier/doc";
-import { Block, Expression, Node, Placeholder, Statement } from "./jinja";
+import { Block, Expression, Node, Statement } from "./types";
+import { Placeholder } from "./constants";
+import { transformJsonToGroups } from "./utils/transform-json-to-groups";
 
 const NOT_FOUND = -1;
 
@@ -19,6 +21,7 @@ export const getVisitorKeys = (
 
 export const print: Printer<Node>["print"] = (path) => {
 	const node = path.getNode();
+
 	if (!node) {
 		return [];
 	}
@@ -62,7 +65,7 @@ const printExpression = (node: Expression): builders.Doc => {
 const printStatement = (node: Statement): builders.Doc => {
 	const multiline = node.content.includes("\n");
 
-	const statemnt = builders.group(
+	const statement = builders.group(
 		builders.join(" ", [
 			["{%", node.delimiter.start],
 			multiline
@@ -79,9 +82,9 @@ const printStatement = (node: Statement): builders.Doc => {
 		["else", "elif"].includes(node.keyword) &&
 		surroundingBlock(node)?.containsNewLines
 	) {
-		return [builders.dedent(builders.hardline), statemnt, builders.hardline];
+		return [builders.dedent(builders.hardline), statement, builders.hardline];
 	}
-	return statemnt;
+	return statement;
 };
 
 const printCommentBlock = (node: Node): builders.Doc => {
@@ -98,15 +101,9 @@ const printIgnoreBlock = (node: Node): builders.Doc => {
 	return node.content;
 };
 
-export const embed: Printer<Node>["embed"] = () => {
-	return async (
-		textToDoc: (text: string, options: Options) => Promise<Doc>,
-		print: (
-			selector?: string | number | Array<string | number> | AstPath,
-		) => Doc,
-		path: AstPath,
-		options: Options,
-	): Promise<Doc | undefined> => {
+export const embed: Printer<Node>["embed"] =
+	() =>
+	async (textToDoc, print, path, options): Promise<Doc | undefined> => {
 		const node = path.getNode();
 
 		if (!node || !["root", "block"].includes(node.type)) {
@@ -180,7 +177,6 @@ export const embed: Printer<Node>["embed"] = () => {
 		}
 		return [...mapped, builders.hardline];
 	};
-};
 
 const getMultilineGroup = (content: String): builders.Group => {
 	// Dedent the content by the minimum indentation of any non-blank lines.
@@ -204,19 +200,23 @@ const getMultilineGroup = (content: String): builders.Group => {
 	);
 };
 
-const splitAtElse = (node: Node): string[] => {
+const splitAtElse = (node: Statement): string[] => {
+	const content = node.content;
+
 	const elseNodes = Object.values<Node>(node.nodes).filter(
-		(n) =>
-			n.type === "statement" &&
-			["else", "elif"].includes((n as Statement).keyword) &&
-			node.content.search(n.id) !== NOT_FOUND,
+		(statement) =>
+			statement.type === "statement" &&
+			["else", "elif"].includes((statement as Statement).keyword) &&
+			content.search(statement.id) !== NOT_FOUND,
 	);
+
 	if (!elseNodes.length) {
-		return [node.content];
+		return transformJsonToGroups(content);
 	}
 
 	const re = new RegExp(`(${elseNodes.map((e) => e.id).join(")|(")})`);
-	return node.content.split(re).filter(Boolean);
+
+	return content.split(re).filter(Boolean).flatMap(transformJsonToGroups);
 };
 
 /**
@@ -229,11 +229,17 @@ export const findPlaceholders = (text: string): [number, number][] => {
 
 	while (true) {
 		const start = text.slice(i).search(Placeholder.startToken);
-		if (start === NOT_FOUND) break;
+
+		if (start === NOT_FOUND) {
+			break;
+		}
 		const end = text
 			.slice(start + i + Placeholder.startToken.length)
 			.search(Placeholder.endToken);
-		if (end === NOT_FOUND) break;
+
+		if (end === NOT_FOUND) {
+			break;
+		}
 
 		res.push([
 			start + i,

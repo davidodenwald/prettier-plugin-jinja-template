@@ -1,5 +1,6 @@
 import { Parser } from "prettier";
-import { Node, Placeholder, Expression, Statement, Block } from "./jinja";
+import { Node, Expression, Statement, Block } from "./types";
+import { Placeholder } from "./constants";
 
 const NOT_FOUND = -1;
 
@@ -125,7 +126,6 @@ export const parse: Parser<Node>["parse"] = (text) => {
 						i += start.id.length - start.length;
 
 						start = undefined;
-						continue;
 					}
 				}
 

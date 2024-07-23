@@ -1,4 +1,4 @@
-import { Node } from "./jinja";
+import { Node } from "./types";
 import { parse } from "./parser";
 import { print, embed, getVisitorKeys } from "./printer";
 import {
@@ -11,7 +11,7 @@ import {
 } from "prettier";
 import { readFileSync } from "fs";
 
-export const PLUGIN_KEY = "jinja-template";
+export const PLUGIN_KEY = "jinja-json-template";
 
 export const languages: SupportLanguage[] = [
 	{
@@ -51,5 +51,10 @@ export const options: SupportOptions = {};
 		options,
 	};
 	const data = readFileSync("./data.jjson").toString();
-	console.log(await format(data, { parser: PLUGIN_KEY, plugins: [plugin] }));
+	console.log(
+		await format(data, {
+			parser: PLUGIN_KEY,
+			plugins: [plugin],
+		}),
+	);
 })();
