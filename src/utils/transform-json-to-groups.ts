@@ -1,38 +1,61 @@
+import { placeholderGenerator, replaceAt } from "./placeholder-generator";
+import { findPlaceholders } from "./find-placeholders";
+import { replacePlaceholders } from "./replace-placeholders";
+
+const STYLE = "json" as const;
+
 export const transformJsonToGroups = (input: string): string[] => {
-	const result: string[] = [];
-	const stack: string[] = [];
-	let jsonStartIndex = -1;
-	let lastEndIndex = 0;
+	// const jsonRegex = /\{[^{}]*\}|\[[^\[\]]*\]/;
+	const jsonRegex = /(\{[^{}]*\})/;
 
-	for (let i = 0; i < input.length; i++) {
-		if (input[i] === "{" || input[i] === "[") {
-			if (stack.length === 0) {
-				jsonStartIndex = i;
-			}
-			stack.push(input[i]);
-		} else if (input[i] === "}" || input[i] === "]") {
-			const last = stack.pop();
-			if (
-				(last === "{" && input[i] !== "}") ||
-				(last === "[" && input[i] !== "]")
-			) {
-				throw new Error("Mismatched brackets");
-			}
-			if (stack.length === 0 && jsonStartIndex !== -1) {
-				if (jsonStartIndex > lastEndIndex) {
-					result.push(input.substring(lastEndIndex, jsonStartIndex));
-				}
-				result.push(input.substring(jsonStartIndex, i + 1));
-				lastEndIndex = i + 1;
-				jsonStartIndex = -1;
-			}
+	let match;
+	let content = input;
+	const placeholderGen = placeholderGenerator(content, STYLE);
+	const placeholders: Record<string, string> = {};
+
+	// replace valid jsons groups by placeholders
+	while ((match = content.match(jsonRegex)) !== null) {
+		const startMatch = match.index;
+
+		if (startMatch === undefined) {
+			continue;
 		}
+
+		const matchText = match[0];
+
+		const placeholder = placeholderGen();
+		placeholders[placeholder] = matchText;
+		content = replaceAt(content, placeholder, startMatch, matchText.length);
 	}
 
-	// Handle any remaining text after the last JSON object/array
-	if (lastEndIndex < input.length) {
-		result.push(input.substring(lastEndIndex));
+	const idsPlaceholders = findPlaceholders(content, STYLE);
+
+	if (!idsPlaceholders.length) {
+		return [content];
 	}
 
-	return result;
+	const groups: string[] = [];
+	let startIndex = 0;
+
+	idsPlaceholders.forEach(([start, end]) => {
+		const notJsonContent = content.slice(startIndex, start);
+		if (notJsonContent) {
+			groups.push(notJsonContent);
+		}
+		startIndex = end;
+
+		const placeholder = content.slice(start, end);
+		const placeholderValue = placeholders[placeholder];
+		const readyJson = replacePlaceholders(placeholderValue, placeholders);
+
+		groups.push(readyJson);
+	});
+
+	const lastIndex = content.length;
+	const notJsonContent = content.slice(startIndex, lastIndex);
+	if (notJsonContent && startIndex < lastIndex) {
+		groups.push(notJsonContent);
+	}
+
+	return groups;
 };

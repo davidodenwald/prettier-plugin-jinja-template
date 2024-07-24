@@ -1,10 +1,11 @@
 import { AstPath, Doc, Printer } from "prettier";
 import { builders, utils } from "prettier/doc";
 import { Block, Expression, Node, Statement } from "./types";
-import { Placeholder } from "./constants";
+import { NOT_FOUND } from "./constants";
 import { transformJsonToGroups } from "./utils/transform-json-to-groups";
+import { findPlaceholders } from "./utils/find-placeholders";
 
-const NOT_FOUND = -1;
+const STYLE = "jinja" as const;
 
 export const getVisitorKeys = (
 	ast: Node | { [id: string]: Node },
@@ -82,7 +83,11 @@ const printStatement = (node: Statement): builders.Doc => {
 		["else", "elif"].includes(node.keyword) &&
 		surroundingBlock(node)?.containsNewLines
 	) {
-		return [builders.dedent(builders.hardline), statement, builders.hardline];
+		return [
+			builders.dedent(builders.hardline),
+			statement,
+			builders.hardline,
+		];
 	}
 	return statement;
 };
@@ -130,8 +135,9 @@ export const embed: Printer<Node>["embed"] =
 						return currentDoc;
 					}
 
-					const idxs = findPlaceholders(currentDoc).filter(
-						([start, end]) => currentDoc.slice(start, end + 1) in node.nodes,
+					const idxs = findPlaceholders(currentDoc, STYLE).filter(
+						([start, end]) =>
+							currentDoc.slice(start, end) in node.nodes,
 					);
 
 					if (!idxs.length) {
@@ -147,7 +153,7 @@ export const embed: Printer<Node>["embed"] =
 							res.push(currentDoc.slice(lastEnd, start));
 						}
 
-						const p = currentDoc.slice(start, end + 1) as string;
+						const p = currentDoc.slice(start, end) as string;
 
 						if (ignoreDoc) {
 							res.push(node.nodes[p].originalText);
@@ -155,7 +161,7 @@ export const embed: Printer<Node>["embed"] =
 							res.push(path.call(print, "nodes", p));
 						}
 
-						lastEnd = end + 1;
+						lastEnd = end;
 					}
 
 					if (lastEnd > 0 && currentDoc.length > lastEnd) {
@@ -178,7 +184,7 @@ export const embed: Printer<Node>["embed"] =
 		return [...mapped, builders.hardline];
 	};
 
-const getMultilineGroup = (content: String): builders.Group => {
+const getMultilineGroup = (content: string): builders.Group => {
 	// Dedent the content by the minimum indentation of any non-blank lines.
 	const lines = content.split("\n");
 	const minIndent = Math.min(
@@ -217,37 +223,6 @@ const splitAtElse = (node: Statement): string[] => {
 	const re = new RegExp(`(${elseNodes.map((e) => e.id).join(")|(")})`);
 
 	return content.split(re).filter(Boolean).flatMap(transformJsonToGroups);
-};
-
-/**
- * Returns the indexs of the first and the last character of any placeholder
- * occuring in a string.
- */
-export const findPlaceholders = (text: string): [number, number][] => {
-	const res = [];
-	let i = 0;
-
-	while (true) {
-		const start = text.slice(i).search(Placeholder.startToken);
-
-		if (start === NOT_FOUND) {
-			break;
-		}
-		const end = text
-			.slice(start + i + Placeholder.startToken.length)
-			.search(Placeholder.endToken);
-
-		if (end === NOT_FOUND) {
-			break;
-		}
-
-		res.push([
-			start + i,
-			end + start + i + Placeholder.startToken.length + 1,
-		] as [number, number]);
-		i += start + Placeholder.startToken.length;
-	}
-	return res;
 };
 
 export const surroundingBlock = (node: Node): Block | undefined => {

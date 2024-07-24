@@ -1,8 +1,9 @@
 import { Parser } from "prettier";
 import { Node, Expression, Statement, Block } from "./types";
-import { Placeholder } from "./constants";
+import { placeholderGenerator, replaceAt } from "./utils/placeholder-generator";
+import { NOT_FOUND } from "./constants";
 
-const NOT_FOUND = -1;
+const STYLE = "jinja" as const;
 
 const regex =
 	/(?<node>{{(?<startDelimiterEx>[-+]?)\s*(?<expression>'([^']|\\')*'|"([^"]|\\")*"|[\S\s]*?)\s*(?<endDelimiterEx>[-+]?)}}|{%(?<startDelimiter>[-+]?)\s*(?<statement>(?<keyword>\w+)('([^']|\\')*'|"([^"]|\\")*"|[\S\s])*?)\s*(?<endDelimiter>[-+]?)%}|(?<comment>{#[\S\s]*?#}))/;
@@ -21,7 +22,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 		nodes: {},
 	};
 
-	const generatePlaceholder = placeholderGenerator(text);
+	const generatePlaceholder = placeholderGenerator(text, STYLE);
 
 	let match;
 	let i = 0;
@@ -37,7 +38,13 @@ export const parse: Parser<Node>["parse"] = (text) => {
 		const ignoreBlock = match.groups.ignoreBlock;
 		const comment = match.groups.comment;
 
-		if (!matchText && !expression && !statement && !ignoreBlock && !comment) {
+		if (
+			!matchText &&
+			!expression &&
+			!statement &&
+			!ignoreBlock &&
+			!comment
+		) {
 			continue;
 		}
 
@@ -171,7 +178,11 @@ export const parse: Parser<Node>["parse"] = (text) => {
 					originalText.length,
 				);
 
-				i += match.index + block.id.length + end.length - originalText.length;
+				i +=
+					match.index +
+					block.id.length +
+					end.length -
+					originalText.length;
 			} else {
 				root.nodes[node.id] = {
 					...node,
@@ -193,28 +204,4 @@ export const parse: Parser<Node>["parse"] = (text) => {
 	}
 
 	return root;
-};
-
-const placeholderGenerator = (text: string) => {
-	let id = 0;
-
-	return (): string => {
-		while (true) {
-			id++;
-
-			const placeholder = Placeholder.startToken + id + Placeholder.endToken;
-			if (!text.includes(placeholder)) {
-				return placeholder;
-			}
-		}
-	};
-};
-
-const replaceAt = (
-	str: string,
-	replacement: string,
-	start: number,
-	length: number,
-): string => {
-	return str.slice(0, start) + replacement + str.slice(start + length);
 };

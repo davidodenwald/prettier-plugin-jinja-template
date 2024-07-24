@@ -1,4 +1,12 @@
 export const Placeholder = {
-	startToken: "`~",
-	endToken: "~`",
+	jinja: {
+		startToken: "`~",
+		endToken: "~`",
+	},
+	json: {
+		startToken: "__~",
+		endToken: "~__",
+	},
 } as const;
+
+export const NOT_FOUND = -1 as const;

@@ -1,5 +1,3 @@
-
-
 export interface Node {
 	id: string;
 	type: "root" | "expression" | "statement" | "block" | "comment" | "ignore";
@@ -34,3 +32,5 @@ export interface Block extends Node {
 	end: Statement;
 	containsNewLines: boolean;
 }
+
+export type PlaceholderStyle = "jinja" | "json";

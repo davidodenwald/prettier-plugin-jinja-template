@@ -9,20 +9,32 @@ const output1 = [
 	'{"textContentKind":"plain","multiline":false,"value":" из `~8~` `~9~`","color":"textColorPrimary","typography":"ActionPrimaryLarge"}',
 ];
 
-const input2 = '{"color":"`~13~`"}`~16~`';
-const output2 = ['{"color":"`~13~`"}', "`~16~`"];
-
-const input3 = 'prefix{"key":"value"}suffix';
-const output3 = ["prefix", '{"key":"value"}', "suffix"];
-
 describe("transform-json-to-groups", () => {
 	const testCases = [
 		{ input: input1, expected: output1 },
-		{ input: input2, expected: output2 },
-		{ input: input3, expected: output3 },
+		{
+			input: '{"color":"`~13~`"}`~16~`',
+			expected: ['{"color":"`~13~`"}', "`~16~`"],
+		},
+		{
+			input: 'prefix{"key":"value"}suffix',
+			expected: ["prefix", '{"key":"value"}', "suffix"],
+		},
+		{ input: 'prefix{"key":"value"', expected: ['prefix{"key":"value"'] },
+		{ input: '"key":"value"}', expected: ['"key":"value"}'] },
+		{
+			input: '{"key":{"newKey": false}',
+			expected: ['{"key":', '{"newKey": false}'],
+		},
+		{
+			input: '{"type": "Spacer","content": {}}',
+			expected: ['{"type": "Spacer","content": {}}'],
+		},
 	];
 
 	it.each(testCases)(`case with $input`, ({ input, expected }) => {
-		expect(transformJsonToGroups(input)).toEqual(expected);
+		const groups = transformJsonToGroups(input);
+		expect(groups).toEqual(expected);
+		expect(groups.join("")).toHaveLength(input.length);
 	});
 });
