@@ -121,6 +121,7 @@ export const embed: Printer<Node>["embed"] =
             parser: "json",
           });
         } catch (e) {
+          console.error(e);
           doc = content;
         }
 

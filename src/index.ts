@@ -1,26 +1,32 @@
 import { Node } from "./types";
 import { parse } from "./parser";
 import { embed, getVisitorKeys, print } from "./printer";
-import {
+import type {
   Parser,
   ParserOptions,
   Printer,
   SupportLanguage,
   SupportOptions,
 } from "prettier";
+import { parsers as babelParsers } from "prettier/plugins/babel";
+
+// only common js imports.. why? i dont know
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const estree = require("prettier/plugins/estree");
 
 export const PLUGIN_KEY = "jinja-json-template";
 
 export const languages: SupportLanguage[] = [
   {
-    name: "JinjaTemplate",
-    parsers: [PLUGIN_KEY],
-    extensions: [".jinja", ".jinja2", ".j2", ".html"],
+    name: "JinjaJsonTemplate",
+    parsers: [PLUGIN_KEY, "json"],
+    extensions: [".json"],
     vscodeLanguageIds: ["jinja"],
   },
 ];
 
 export const parsers = {
+  json: babelParsers.json,
   [PLUGIN_KEY]: <Parser<Node>>{
     astFormat: PLUGIN_KEY,
     parse,
@@ -30,6 +36,7 @@ export const parsers = {
 };
 
 export const printers = {
+  estree: estree.printers.estree,
   [PLUGIN_KEY]: <Printer<Node>>{
     print,
     embed,
@@ -40,3 +47,10 @@ export const printers = {
 export type extendedOptions = ParserOptions<Node>;
 
 export const options: SupportOptions = {};
+
+export const plugin = {
+  languages,
+  parsers,
+  printers,
+  options,
+} as const;
