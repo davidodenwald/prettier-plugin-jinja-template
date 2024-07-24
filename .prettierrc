@@ -1,3 +1,5 @@
 {
-	"useTabs": true
+	"useTabs": true,
+	"editorconfig": false,
+	"tabWidth": 4
 }

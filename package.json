@@ -1,22 +1,22 @@
 {
-	"name": "prettier-plugin-jinja-template",
-	"version": "1.4.1",
-	"description": "Prettier plugin for formatting jinja templates.",
-	"author": "David Odenwald",
+	"name": "prettier-plugin-jinja-json-template",
+	"version": "0.0.1",
+	"description": "Prettier plugin for formatting jinja json templates.",
+	"author": "David Odenwald, Bystray Stepan",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/davidodenwald/prettier-plugin-jinja-template.git"
+		"url": "git+https://github.com/NeoRu4/prettier-plugin-jinja-json-template"
 	},
 	"bugs": {
-		"url": "https://github.com/davidodenwald/prettier-plugin-jinja-template/issues"
+		"url": "https://github.com/NeoRu4/prettier-plugin-jinja-json-template/issues"
 	},
 	"homepage": "https://github.com/davidodenwald/prettier-plugin-jinja-template#readme",
 	"keywords": [
 		"prettier",
 		"plugin",
 		"template",
-		"html",
+		"json",
 		"jinja",
 		"jinja2",
 		"flask"
@@ -31,12 +31,17 @@
 	},
 	"devDependencies": {
 		"@babel/preset-typescript": "^7.24.7",
+		"@eslint/js": "^9.7.0",
+		"@types/eslint": "^9",
 		"@types/jest": "^29.5.12",
+		"eslint": "9.x",
+		"globals": "^15.8.0",
 		"jest": "^29.7.0",
 		"prettier": "^3.3.1",
 		"ts-jest": "^29.1.4",
 		"ts-node": "^10.9.2",
-		"typescript": "^5.4.5"
+		"typescript": "^5.4.5",
+		"typescript-eslint": "^7.17.0"
 	},
 	"peerDependencies": {
 		"prettier": "^3.0.0"
