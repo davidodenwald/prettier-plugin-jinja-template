@@ -1,38 +1,36 @@
-name: CI/CD Pipeline
+name: "🍏 publish"
 
 on:
   push:
-    tags:
-      - v*.*.*
     branches:
       - master
 
 jobs:
-  build:
+  release:
+    name: "🍏 publish"
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: "Checkout repository"
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      - name: "Set up Node.js"
         uses: actions/setup-node@v3
         with:
-          node-version: '20'  # Specify the Node.js version you need
+          node-version: '18.x'
 
-      - name: Install dependencies
+      - name: "🗄️ Install dependencies"
         run: yarn
 
-      - name: Lint code
+      - name: "🔎 Lint code"
         run: yarn lint
 
-      - name: Run tests
+      - name: "🧪 Run tests"
         run: yarn test
 
-      - name: Build project
+      - name: "🏡 Build project"
         run: yarn build
 
-      - name: Publish to npm
+      - name: "🚀 Publish to npm"
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: yarn publish --non-interactive
+          NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
+        run: npm publish --access public

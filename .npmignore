@@ -4,6 +4,7 @@ src/
 .yarn/
 test/
 
+__*
 .prettierignore
 .prettierrc
 .yarnrc.yml

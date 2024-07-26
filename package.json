@@ -22,12 +22,12 @@
     "flask"
   ],
   "main": "dist/cjs/index.js",
-  "module": "dist/index.js",
+  "module": "dist/esm/index.js",
   "source": "src/index.ts",
   "scripts": {
+    "lint": "yarn run eslint ./src/*",
     "build": "rollup -c",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --verbose test",
-    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch --verbose"
+    "test": "jest"
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.24.7",
