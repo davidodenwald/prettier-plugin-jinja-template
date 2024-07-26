@@ -1,0 +1,8 @@
+{
+title:{{title}}</h1>
+{%else if href == "random.json" %}
+h2: {{title}}
+{%else%}
+h3: {{title}}
+{% endif %}
+}

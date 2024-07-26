@@ -1,0 +1,12 @@
+{
+{% for row in database %}
+"ol":{
+{% for element in row %}
+{%if element.active%}
+"li": {
+    "description": {{ element.description}}
+}
+{% endif%}
+{% endfor%}}{%endfor %}
+"arr":[{{row[0]}},{{row[1]}},{{row[2]}},{{row[3]}}, {{row[3]}}]
+}

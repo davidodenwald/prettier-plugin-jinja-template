@@ -1,0 +1,12 @@
+{% if True %}
+
+{ "o": { "a": {{ abc }} } }
+
+{% endif %}
+{% if True %}
+
+{ "b": {{ abc }} }
+
+{% else %}
+   {"p": {"e": {{ abc }},{% if False %}"z":{{ bcd }}{% else %}"x": {{ cde }}{% endif %}}
+{% endif %}
