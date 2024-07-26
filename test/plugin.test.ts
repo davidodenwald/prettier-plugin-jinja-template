@@ -5,27 +5,36 @@ import { format } from "prettier/standalone";
 import { plugin, PLUGIN_KEY } from "../src";
 
 describe("plugins", () => {
-	const testFolder = join(__dirname, "cases");
-	const tests = readdirSync(testFolder).filter((test) => !test.startsWith("_"));
 
-	it.each(tests)("should json jinja: %s be valid", async (test) => {
-		const path = join(testFolder, test);
-		const input = readFileSync(join(path, "input.json")).toString();
-		const expected = readFileSync(join(path, "expected.json")).toString();
 
-		const formated = () => format(input, {
-			parser: PLUGIN_KEY,
-			plugins: [plugin]
+	const formated = (input: string) => format(input, {
+		parser: PLUGIN_KEY,
+		plugins: [plugin]
+	});
+
+	describe("valid", () => {
+		const validCaseFolder = join(__dirname, "cases");
+		const tests = readdirSync(validCaseFolder).filter((f) => f.endsWith(".json"));
+
+		it.each(tests)("should json jinja: %s be valid", async (test) => {
+			const testPath = join(validCaseFolder, test);
+			const input = readFileSync(testPath).toString();
+
+			expect(await formated(input)).toMatchSnapshot(test);
+		});
+	});
+
+	describe("broken", async () => {
+
+		const brokenNotOpenStatementFolder = join(__dirname, "cases", "broken_not_open_statement");
+		const testsBroken = readdirSync(brokenNotOpenStatementFolder).filter((f) => f.endsWith(".json"));
+
+		it.each(testsBroken)("should json jinja: %s be broken_not_open_statement", async (test) => {
+			const testPath = join(brokenNotOpenStatementFolder, test);
+			const input = readFileSync(testPath).toString();
+
+			await expect(() => formated(input)).rejects.toThrow(/No opening statement found for closing statement "(.*)"/);
 		});
 
-		const expectedError = expected.match(/Error\(["'`](?<message>.*)["'`]\)/)
-			?.groups?.message;
-
-		if (expectedError) {
-			await expect(formated).rejects.toThrow(expectedError);
-			return;
-		}
-
-		expect(await formated()).toEqual(expected);
 	});
 });

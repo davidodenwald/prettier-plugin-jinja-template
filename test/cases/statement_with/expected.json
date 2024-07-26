@@ -1,4 +1,0 @@
-{{ obj.method("argument")|default("", True) }}
-{% with text='text', version=1 %}
-  {% include 'directory/template.jinja2' %}
-{% endwith %}

@@ -1,5 +1,0 @@
-[
-  {%- for item in seq -%}
-    { "item": {{ item }} }
-  {%- endfor %}
-]

@@ -1,5 +1,0 @@
-{
-  "info": {{- some_variable -}},
-  "obj": {{ some_variable -}},
-  "var": {{- some_variable }}
-}
