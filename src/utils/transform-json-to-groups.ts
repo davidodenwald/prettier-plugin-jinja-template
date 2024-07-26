@@ -4,8 +4,11 @@ import { replacePlaceholders } from "./replace-placeholders";
 
 const STYLE = "json" as const;
 
+/**
+ * The groups of the largest JSON closed objects.
+ * @param input
+ */
 export const transformJsonToGroups = (input: string): string[] => {
-  // const jsonRegex = /\{[^{}]*\}|\[[^\[\]]*\]/;
   const jsonRegex = /({[^{}]*})/;
 
   let match;
@@ -37,25 +40,27 @@ export const transformJsonToGroups = (input: string): string[] => {
   const groups: string[] = [];
   let startIndex = 0;
 
+  const addGroup = (data: string) => {
+    const newData = data.trim();
+    if (newData) {
+      groups.push(newData);
+    }
+  };
+
   idsPlaceholders.forEach(([start, end]) => {
     const notJsonContent = content.slice(startIndex, start);
-    if (notJsonContent) {
-      groups.push(notJsonContent);
-    }
+    addGroup(notJsonContent);
     startIndex = end;
 
     const placeholder = content.slice(start, end);
     const placeholderValue = placeholders[placeholder];
     const readyJson = replacePlaceholders(placeholderValue, placeholders);
-
-    groups.push(readyJson);
+    addGroup(readyJson);
   });
 
   const lastIndex = content.length;
   const notJsonContent = content.slice(startIndex, lastIndex);
-  if (notJsonContent && startIndex < lastIndex) {
-    groups.push(notJsonContent);
-  }
+  addGroup(notJsonContent);
 
   return groups;
 };

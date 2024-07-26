@@ -113,21 +113,25 @@ export const embed: Printer<Node>["embed"] =
 
     const mapped = await Promise.all(
       splitAtElse(node).map(async (content) => {
-        let doc;
+        const contentGroups = transformJsonToGroups(content);
+        const document: Doc = [];
 
-        try {
-          doc = await textToDoc(content, {
-            ...options,
-            parser: "json",
-          });
-        } catch (e) {
-          console.error(e);
-          doc = content;
+        for (const group of contentGroups) {
+          try {
+            document.push(
+              await textToDoc(group, {
+                ...options,
+                parser: "json",
+              }),
+            );
+          } catch (e) {
+            document.push(group);
+          }
         }
 
         let ignoreDoc = false;
 
-        return utils.mapDoc(doc, (currentDoc) => {
+        return utils.mapDoc(document, (currentDoc) => {
           if (typeof currentDoc !== "string") {
             return currentDoc;
           }
@@ -213,15 +217,15 @@ const splitAtElse = (node: Statement): string[] => {
   );
 
   if (!elseNodes.length) {
-    return transformJsonToGroups(content);
+    return [content];
   }
 
   const re = new RegExp(`(${elseNodes.map((e) => e.id).join(")|(")})`);
 
-  return content.split(re).filter(Boolean).flatMap(transformJsonToGroups);
+  return content.split(re).filter(Boolean);
 };
 
-export const surroundingBlock = (node: Node): Block | undefined => {
+const surroundingBlock = (node: Node): Block | undefined => {
   return Object.values<Node>(node.nodes).find(
     (n) => n.type === "block" && n.content.search(node.id) !== NOT_FOUND,
   ) as Block;

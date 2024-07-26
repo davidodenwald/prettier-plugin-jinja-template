@@ -10,7 +10,7 @@ import type {
 } from "prettier";
 import { parsers as babelParsers } from "prettier/plugins/babel";
 
-// only common js imports.. why? i dont know
+// only common js imports.. without typing :: why? i dont know
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const estree = require("prettier/plugins/estree");
 
@@ -20,7 +20,7 @@ export const languages: SupportLanguage[] = [
   {
     name: "JinjaJsonTemplate",
     parsers: [PLUGIN_KEY, "json"],
-    extensions: [".json"],
+    extensions: [".json.jinja", ".json.jinja2", ".json.j2"],
     vscodeLanguageIds: ["jinja"],
   },
 ];
