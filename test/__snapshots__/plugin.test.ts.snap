@@ -1,11 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`plugins should json jinja: collition.json be valid: collition.json 1`] = `
+exports[`plugins valid should json jinja: collition.jinja be valid: collition.jinja 1`] = `
 "#~1~# {{ i }}
 "
 `;
 
-exports[`plugins should json jinja: comment.json be valid: comment.json 1`] = `
+exports[`plugins valid should json jinja: comment.jinja be valid: comment.jinja 1`] = `
 "{#
 	Language will be used as ab_variant shortcut
 	tracking callback is our own patched callback
@@ -23,32 +23,32 @@ exports[`plugins should json jinja: comment.json be valid: comment.json 1`] = `
 "
 `;
 
-exports[`plugins should json jinja: empty.json be valid: empty.json 1`] = `""`;
+exports[`plugins valid should json jinja: empty.jinja be valid: empty.jinja 1`] = `""`;
 
-exports[`plugins should json jinja: expression.json be valid: expression.json 1`] = `
+exports[`plugins valid should json jinja: expression.jinja be valid: expression.jinja 1`] = `
 "[{{ user.name }}, "{{ user.age }}"]
 "
 `;
 
-exports[`plugins should json jinja: expression_2.json be valid: expression_2.json 1`] = `
+exports[`plugins valid should json jinja: expression_2.jinja be valid: expression_2.jinja 1`] = `
 "{"userName: "~{{ user.id }}~{{ user.name }}~"}
 "
 `;
 
-exports[`plugins should json jinja: expression_escaped.json be valid: expression_escaped.json 1`] = `
+exports[`plugins valid should json jinja: expression_escaped.jinja be valid: expression_escaped.jinja 1`] = `
 "{{ '{{' }}
 {{ '}}' }}
 "
 `;
 
-exports[`plugins should json jinja: expression_long.json be valid: expression_long.json 1`] = `
+exports[`plugins valid should json jinja: expression_long.jinja be valid: expression_long.jinja 1`] = `
 "{
   "long": "{{ really really looooooooooooooooooooooooooooooooooooooooong fdsf sdf sdf sdf sdf sdf sdf dsfexpression that should get a own line }}"
 }
 "
 `;
 
-exports[`plugins should json jinja: expression_multiline.json be valid: expression_multiline.json 1`] = `
+exports[`plugins valid should json jinja: expression_multiline.jinja be valid: expression_multiline.jinja 1`] = `
 "{{
   {
     'dict': 'of',
@@ -59,7 +59,7 @@ exports[`plugins should json jinja: expression_multiline.json be valid: expressi
 "
 `;
 
-exports[`plugins should json jinja: expression_whitespace.json be valid: expression_whitespace.json 1`] = `
+exports[`plugins valid should json jinja: expression_whitespace.jinja be valid: expression_whitespace.jinja 1`] = `
 "{
   "info": {{- some_variable -}},
   "obj": {{ some_variable -}},
@@ -68,7 +68,7 @@ exports[`plugins should json jinja: expression_whitespace.json be valid: express
 "
 `;
 
-exports[`plugins should json jinja: issue_25.json be valid: issue_25.json 1`] = `
+exports[`plugins valid should json jinja: issue_25.jinja be valid: issue_25.jinja 1`] = `
 "{% if true %}
   {% if true %}
   {% endif %}
@@ -76,7 +76,7 @@ exports[`plugins should json jinja: issue_25.json be valid: issue_25.json 1`] = 
 "
 `;
 
-exports[`plugins should json jinja: statement.json be valid: statement.json 1`] = `
+exports[`plugins valid should json jinja: statement.jinja be valid: statement.jinja 1`] = `
 "[
   {% for item in seq %}
     {{ item }},
@@ -86,19 +86,19 @@ exports[`plugins should json jinja: statement.json be valid: statement.json 1`] 
 "
 `;
 
-exports[`plugins should json jinja: statement_broken_2.json be valid: statement_broken_2.json 1`] = `
+exports[`plugins valid should json jinja: statement_broken_2.jinja be valid: statement_broken_2.jinja 1`] = `
 "[
 {% if title %}{"title": {{ title }}}]
 "
 `;
 
-exports[`plugins should json jinja: statement_empty_block.json be valid: statement_empty_block.json 1`] = `
+exports[`plugins valid should json jinja: statement_empty_block.jinja be valid: statement_empty_block.jinja 1`] = `
 "{% block title %}
 {% endblock %}
 "
 `;
 
-exports[`plugins should json jinja: statement_long.json be valid: statement_long.json 1`] = `
+exports[`plugins valid should json jinja: statement_long.jinja be valid: statement_long.jinja 1`] = `
 "{
   "captions": [
     {%
@@ -115,7 +115,7 @@ exports[`plugins should json jinja: statement_long.json be valid: statement_long
 "
 `;
 
-exports[`plugins should json jinja: statement_multiple.json be valid: statement_multiple.json 1`] = `
+exports[`plugins valid should json jinja: statement_multiple.jinja be valid: statement_multiple.jinja 1`] = `
 "{
 {% for row in database %}
   "ol":{
@@ -132,7 +132,7 @@ exports[`plugins should json jinja: statement_multiple.json be valid: statement_
 "
 `;
 
-exports[`plugins should json jinja: statement_multiple_else.json be valid: statement_multiple_else.json 1`] = `
+exports[`plugins valid should json jinja: statement_multiple_else.jinja be valid: statement_multiple_else.jinja 1`] = `
 "{% if True %}
   {"o": {"a": {{ abc }}}}
 {% endif %}
@@ -145,14 +145,14 @@ exports[`plugins should json jinja: statement_multiple_else.json be valid: state
 "
 `;
 
-exports[`plugins should json jinja: statement_unknown.json be valid: statement_unknown.json 1`] = `
+exports[`plugins valid should json jinja: statement_unknown.jinja be valid: statement_unknown.jinja 1`] = `
 "{% foo %}
   {"h1": "Hello"}
 {% endfoo %}
 "
 `;
 
-exports[`plugins should json jinja: statement_whitespace.json be valid: statement_whitespace.json 1`] = `
+exports[`plugins valid should json jinja: statement_whitespace.jinja be valid: statement_whitespace.jinja 1`] = `
 "[
   {%- for item in seq -%}
     {"item": {{ item }}}
@@ -161,345 +161,7 @@ exports[`plugins should json jinja: statement_whitespace.json be valid: statemen
 "
 `;
 
-exports[`plugins should json jinja: statement_with.json be valid: statement_with.json 1`] = `
-"{{ obj.method("argument")|default("", True) }}
-{% with text='text', version=1 %}
-  {% include 'directory/template.jinja2' %}
-{% endwith %}
-"
-`;
-
-exports[`plugins valid should json jinja: collition.json be valid: collition.json 1`] = `
-"#~1~# {{ i }}
-"
-`;
-
-exports[`plugins valid should json jinja: collition.json.jinja be valid: collition.json.jinja 1`] = `
-"#~1~# {{ i }}
-"
-`;
-
-exports[`plugins valid should json jinja: comment.json be valid: comment.json 1`] = `
-"{#
-	Language will be used as ab_variant shortcut
-	tracking callback is our own patched callback
-  
-	Integration note:
-  
-	window.emos3 = {
-	  stored: [],
-	  send: function(p){this.stored.push(p);}
-	};
-
-	This script tag must be moved to the head tag so
-	that onclick events can already use the send method.
-#}
-"
-`;
-
-exports[`plugins valid should json jinja: comment.json.jinja be valid: comment.json.jinja 1`] = `
-"{#
-	Language will be used as ab_variant shortcut
-	tracking callback is our own patched callback
-  
-	Integration note:
-  
-	window.emos3 = {
-	  stored: [],
-	  send: function(p){this.stored.push(p);}
-	};
-
-	This script tag must be moved to the head tag so
-	that onclick events can already use the send method.
-#}
-"
-`;
-
-exports[`plugins valid should json jinja: empty.json be valid: empty.json 1`] = `""`;
-
-exports[`plugins valid should json jinja: empty.json.jinja be valid: empty.json.jinja 1`] = `""`;
-
-exports[`plugins valid should json jinja: expression.json be valid: expression.json 1`] = `
-"[{{ user.name }}, "{{ user.age }}"]
-"
-`;
-
-exports[`plugins valid should json jinja: expression.json.jinja be valid: expression.json.jinja 1`] = `
-"[{{ user.name }}, "{{ user.age }}"]
-"
-`;
-
-exports[`plugins valid should json jinja: expression_2.json be valid: expression_2.json 1`] = `
-"{"userName: "~{{ user.id }}~{{ user.name }}~"}
-"
-`;
-
-exports[`plugins valid should json jinja: expression_2.json.jinja be valid: expression_2.json.jinja 1`] = `
-"{"userName: "~{{ user.id }}~{{ user.name }}~"}
-"
-`;
-
-exports[`plugins valid should json jinja: expression_escaped.json be valid: expression_escaped.json 1`] = `
-"{{ '{{' }}
-{{ '}}' }}
-"
-`;
-
-exports[`plugins valid should json jinja: expression_escaped.json.jinja be valid: expression_escaped.json.jinja 1`] = `
-"{{ '{{' }}
-{{ '}}' }}
-"
-`;
-
-exports[`plugins valid should json jinja: expression_long.json be valid: expression_long.json 1`] = `
-"{
-  "long": "{{ really really looooooooooooooooooooooooooooooooooooooooong fdsf sdf sdf sdf sdf sdf sdf dsfexpression that should get a own line }}"
-}
-"
-`;
-
-exports[`plugins valid should json jinja: expression_long.json.jinja be valid: expression_long.json.jinja 1`] = `
-"{
-  "long": "{{ really really looooooooooooooooooooooooooooooooooooooooong fdsf sdf sdf sdf sdf sdf sdf dsfexpression that should get a own line }}"
-}
-"
-`;
-
-exports[`plugins valid should json jinja: expression_multiline.json be valid: expression_multiline.json 1`] = `
-"{{
-  {
-    'dict': 'of',
-    'key': 'and',
-    'value': 'pairs'
-  }
-}}
-"
-`;
-
-exports[`plugins valid should json jinja: expression_multiline.json.jinja be valid: expression_multiline.json.jinja 1`] = `
-"{{
-  {
-    'dict': 'of',
-    'key': 'and',
-    'value': 'pairs'
-  }
-}}
-"
-`;
-
-exports[`plugins valid should json jinja: expression_whitespace.json be valid: expression_whitespace.json 1`] = `
-"{
-  "info": {{- some_variable -}},
-  "obj": {{ some_variable -}},
-  "var": {{- some_variable }}
-}
-"
-`;
-
-exports[`plugins valid should json jinja: expression_whitespace.json.jinja be valid: expression_whitespace.json.jinja 1`] = `
-"{
-  "info": {{- some_variable -}},
-  "obj": {{ some_variable -}},
-  "var": {{- some_variable }}
-}
-"
-`;
-
-exports[`plugins valid should json jinja: issue_25.json be valid: issue_25.json 1`] = `
-"{% if true %}
-  {% if true %}
-  {% endif %}
-{% endif %}
-"
-`;
-
-exports[`plugins valid should json jinja: issue_25.json.jinja be valid: issue_25.json.jinja 1`] = `
-"{% if true %}
-  {% if true %}
-  {% endif %}
-{% endif %}
-"
-`;
-
-exports[`plugins valid should json jinja: statement.json be valid: statement.json 1`] = `
-"[
-  {% for item in seq %}
-    {{ item }},
-
-  {% endfor %}
-]
-"
-`;
-
-exports[`plugins valid should json jinja: statement.json.jinja be valid: statement.json.jinja 1`] = `
-"[
-  {% for item in seq %}
-    {{ item }},
-
-  {% endfor %}
-]
-"
-`;
-
-exports[`plugins valid should json jinja: statement_broken_2.json be valid: statement_broken_2.json 1`] = `
-"[
-{% if title %}{"title": {{ title }}}]
-"
-`;
-
-exports[`plugins valid should json jinja: statement_broken_2.json.jinja be valid: statement_broken_2.json.jinja 1`] = `
-"[
-{% if title %}{"title": {{ title }}}]
-"
-`;
-
-exports[`plugins valid should json jinja: statement_empty_block.json be valid: statement_empty_block.json 1`] = `
-"{% block title %}
-{% endblock %}
-"
-`;
-
-exports[`plugins valid should json jinja: statement_empty_block.json.jinja be valid: statement_empty_block.json.jinja 1`] = `
-"{% block title %}
-{% endblock %}
-"
-`;
-
-exports[`plugins valid should json jinja: statement_long.json be valid: statement_long.json 1`] = `
-"{
-  "captions": [
-    {%
-      for href, caption in [
-        ('index.html', 'Index'),
-        ('about.html', 'About'),
-        ('downloads.html', 'Downloads')
-      ]
-    %}
-      {"href": {{ href }}, "caption": {{ caption }}}
-    {% endfor %}
-  ]
-}
-"
-`;
-
-exports[`plugins valid should json jinja: statement_long.json.jinja be valid: statement_long.json.jinja 1`] = `
-"{
-  "captions": [
-    {%
-      for href, caption in [
-        ('index.html', 'Index'),
-        ('about.html', 'About'),
-        ('downloads.html', 'Downloads')
-      ]
-    %}
-      {"href": {{ href }}, "caption": {{ caption }}}
-    {% endfor %}
-  ]
-}
-"
-`;
-
-exports[`plugins valid should json jinja: statement_multiple.json be valid: statement_multiple.json 1`] = `
-"{
-{% for row in database %}
-  "ol":{
-{% for element in row %}
-    {% if element.active %}
-      "li":{
-        "description": {{ element.description }}
-      }
-    {% endif %}
-  {% endfor %}}
-{% endfor %}
-"arr":[{{ row[0] }},{{ row[1] }},{{ row[2] }},{{ row[3] }}, {{ row[3] }}]
-}
-"
-`;
-
-exports[`plugins valid should json jinja: statement_multiple.json.jinja be valid: statement_multiple.json.jinja 1`] = `
-"{
-{% for row in database %}
-  "ol":{
-{% for element in row %}
-    {% if element.active %}
-      "li":{
-        "description": {{ element.description }}
-      }
-    {% endif %}
-  {% endfor %}}
-{% endfor %}
-"arr":[{{ row[0] }},{{ row[1] }},{{ row[2] }},{{ row[3] }}, {{ row[3] }}]
-}
-"
-`;
-
-exports[`plugins valid should json jinja: statement_multiple_else.json be valid: statement_multiple_else.json 1`] = `
-"{% if True %}
-  {"o": {"a": {{ abc }}}}
-{% endif %}
-{% if True %}
-  {"b": {{ abc }}}
-{% else %}
-  {"p":{"e": {{ abc }},{% if False %}"z":{{ bcd }}{% else %}"x": {{ cde }}{% endif %}}
-{% endif %}
-
-"
-`;
-
-exports[`plugins valid should json jinja: statement_multiple_else.json.jinja be valid: statement_multiple_else.json.jinja 1`] = `
-"{% if True %}
-  {"o": {"a": {{ abc }}}}
-{% endif %}
-{% if True %}
-  {"b": {{ abc }}}
-{% else %}
-  {"p":{"e": {{ abc }},{% if False %}"z":{{ bcd }}{% else %}"x": {{ cde }}{% endif %}}
-{% endif %}
-
-"
-`;
-
-exports[`plugins valid should json jinja: statement_unknown.json be valid: statement_unknown.json 1`] = `
-"{% foo %}
-  {"h1": "Hello"}
-{% endfoo %}
-"
-`;
-
-exports[`plugins valid should json jinja: statement_unknown.json.jinja be valid: statement_unknown.json.jinja 1`] = `
-"{% foo %}
-  {"h1": "Hello"}
-{% endfoo %}
-"
-`;
-
-exports[`plugins valid should json jinja: statement_whitespace.json be valid: statement_whitespace.json 1`] = `
-"[
-  {%- for item in seq -%}
-    {"item": {{ item }}}
-  {%- endfor %}
-]
-"
-`;
-
-exports[`plugins valid should json jinja: statement_whitespace.json.jinja be valid: statement_whitespace.json.jinja 1`] = `
-"[
-  {%- for item in seq -%}
-    {"item": {{ item }}}
-  {%- endfor %}
-]
-"
-`;
-
-exports[`plugins valid should json jinja: statement_with.json be valid: statement_with.json 1`] = `
-"{{ obj.method("argument")|default("", True) }}
-{% with text='text', version=1 %}
-  {% include 'directory/template.jinja2' %}
-{% endwith %}
-"
-`;
-
-exports[`plugins valid should json jinja: statement_with.json.jinja be valid: statement_with.json.jinja 1`] = `
+exports[`plugins valid should json jinja: statement_with.jinja be valid: statement_with.jinja 1`] = `
 "{{ obj.method("argument")|default("", True) }}
 {% with text='text', version=1 %}
   {% include 'directory/template.jinja2' %}
