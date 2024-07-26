@@ -3,8 +3,9 @@
     "outDir": "./lib",
     "target": "esnext",
     "moduleResolution": "node",
+    "module": "esnext",
     "lib": [
-      "esnext"
+      "esnext",
     ],
     "declaration": true,
     "strictNullChecks": true,
@@ -18,6 +19,7 @@
     "src/**/*"
   ],
   "exclude": [
+    "lib",
     "node_modules",
     "test",
     "*.test.*",

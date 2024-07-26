@@ -1,2 +1,16 @@
-/test/cases
+/test
+/node_modules/
+/.yarn/
+.github
+
 README.md
+yarn.lock
+rollup.config.mjs
+eslint.config.mjs
+babel.config.js
+jest.config.js
+.yarnrc.yml
+.prettierrc
+.prettierignore
+.npmignore
+.gitignore
