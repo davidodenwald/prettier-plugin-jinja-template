@@ -1,17 +1,52 @@
 import { Parser } from "prettier";
-import {
-	Delimiter,
-	Node,
-	Placeholder,
-	Expression,
-	Statement,
-	Block,
-} from "./jinja";
+import { Node, Placeholder, Expression, Statement, Block } from "./jinja";
+const re = require("regex");
 
 const NOT_FOUND = -1;
 
-const regex =
-	/(?<node>{{(?<startDelimiterEx>[-+]?)\s*(?<expression>'([^']|\\')*'|"([^"]|\\")*"|[\S\s]*?)\s*(?<endDelimiterEx>[-+]?)}}|{%(?<startDelimiter>[-+]?)\s*(?<statement>(?<keyword>\w+)('([^']|\\')*'|"([^"]|\\")*"|[\S\s])*?)\s*(?<endDelimiter>[-+]?)%}|(?<ignoreBlock>(?:<!-- prettier-ignore-start -->|{# prettier-ignore-start #})[\s\S]*(?:<!-- prettier-ignore-end -->|{# prettier-ignore-end #}))|(?<comment>{#[\S\s]*?#})|(?<scriptBlock><(script)((?!<)[\s\S])*>((?!<\/script)[\s\S])*?{{[\s\S]*?<\/(script)>)|(?<styleBlock><(style)((?!<)[\s\S])*>((?!<\/style)[\s\S])*?{{[\s\S]*?<\/(style)>))/;
+const regex = re.regex`
+	(?<node>
+		# Expression
+		\{\{
+			(?<startDelimiterEx>\g<delimiter>?)\s*
+				(?<expression>(?>\g<escapeQuotes> | \g<allSymbols>)*?)
+			\s*(?<endDelimiterEx>\g<delimiter>?)
+		\}\}
+		|
+		# Statement
+		\{%
+			(?<startDelimiter>\g<delimiter>?)\s*
+				(?<statement>
+					(?<keyword>\w+)
+					(?>\g<escapeQuotes> | \g<allSymbols>)*?
+				)
+			\s*(?<endDelimiter>\g<delimiter>?)
+		%\}
+		|
+		# Ignore block
+		(?<ignoreBlock>
+			(<!--\s*prettier-ignore-start\s*--> | \{\#\s*prettier-ignore-start\s*\#\})
+				\g<everything>
+			(<!--\s*prettier-ignore-end\s*--> | \{\#\s*prettier-ignore-end\s*\#\})
+		)
+		|
+		# Comment
+		(?<comment>\{\#\g<everything>\#\})
+		|
+		# Script Block
+		(?<scriptBlock><script\g<everything>>\g<everything><\/script>)
+		|
+		# Style Block
+		(?<styleBlock><style\g<everything>>\g<everything><\/style>)
+	)
+
+	(?(DEFINE)
+		(?<everything>		\g<allSymbols>*?)
+		(?<allSymbols>		[\s\S])
+		(?<delimiter>			[\-+])
+		(?<escapeQuotes>	'[^']*'|"[^"]*")
+	)
+`;
 
 export const parse: Parser<Node>["parse"] = (text) => {
 	const statementStack: Statement[] = [];
