@@ -34,10 +34,10 @@ const regex = re.regex`
 		(?<comment>\{\#\g<everything>\#\})
 		|
 		# Script Block
-		(?<scriptBlock><script\g<everything>>\g<everything><\/script>)
+		(?<scriptBlock><script\g<everything>>\g<everything><\/script>\s*)
 		|
 		# Style Block
-		(?<styleBlock><style\g<everything>>\g<everything><\/style>)
+		(?<styleBlock><style\g<everything>>\g<everything><\/style>\s*)
 	)
 
 	(?(DEFINE)
