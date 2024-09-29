@@ -1,6 +1,5 @@
 import { AstPath, Doc, Options, Printer } from "prettier";
 import { builders, utils } from "prettier/doc";
-import { extendedOptions } from "./index";
 import { Block, Expression, Node, Placeholder, Statement } from "./jinja";
 
 const NOT_FOUND = -1;
@@ -121,17 +120,9 @@ export const embed: Printer<Node>["embed"] = () => {
 				if (content in node.nodes) {
 					doc = content;
 				} else {
-					/**
-					 * The lwc parser is the same as the "html" parser,
-					 * but also formats LWC-specific syntax for unquoted template attributes.
-					 */
-					const parser = (options as extendedOptions).quoteAttributes
-						? "html"
-						: "lwc";
-
 					doc = await textToDoc(content, {
 						...options,
-						parser,
+						parser: "html",
 					});
 				}
 

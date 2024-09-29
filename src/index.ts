@@ -1,13 +1,7 @@
 import { Node } from "./jinja";
 import { parse } from "./parser";
 import { print, embed, getVisitorKeys } from "./printer";
-import {
-	Parser,
-	Printer,
-	SupportLanguage,
-	SupportOptions,
-	ParserOptions,
-} from "prettier";
+import { Parser, Printer, SupportLanguage } from "prettier";
 
 const PLUGIN_KEY = "jinja-template";
 
@@ -34,18 +28,5 @@ export const printers = {
 		print,
 		embed,
 		getVisitorKeys,
-	},
-};
-
-export type extendedOptions = ParserOptions<Node> & {
-	quoteAttributes: boolean;
-};
-
-export const options: SupportOptions = {
-	quoteAttributes: {
-		type: "boolean",
-		category: PLUGIN_KEY,
-		default: true,
-		description: "Surrounds the value of html attributes with quotes.",
 	},
 };

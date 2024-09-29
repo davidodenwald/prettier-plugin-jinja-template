@@ -31,7 +31,7 @@ To format basic .html files, you'll have to override the used parser inside your
 }
 ```
 
-Run it on all html files in your project:
+Run it on all HTML files in your project:
 ```bash
 npx prettier --write **/*.html
 ```
@@ -43,7 +43,7 @@ npx prettier --plugin=prettier-plugin-jinja-template --parser=jinja-template --w
 
 ### Ignoring Code
 
-Using range ignores is the best way to tell prettier to igone part of files. Most of the time this is necessary for Jinja tags inside `script` or `style` tags:
+Using range ignores is the best way to tell prettier to ignore part of files. Most of the time this is necessary for Jinja tags inside `script` or `style` tags:
 
 ```html
 <!-- prettier-ignore-start -->
@@ -74,24 +74,3 @@ Or using Jinja comments:
 {# prettier-ignore-end #}
 ```
 
-## Options
-
-This Plugin provides additional options:
-
-### Quote Attributes
-
-Surrounds the value of html attributes with quotes. This option was introduced to support [JinjaX](https://jinjax.scaletti.dev/) syntax.
-
-`true` - Example:
-```js
-<Paginator items="{products}" />
-```
-
-`false` - Example:
-```js
-<Paginator items={products} />
-```
-
-| Default | CLI Override            | API Override              |
-| ------- | ----------------------- | ------------------------- |
-| `true`  | `--no-quote-attributes` | `quoteAttributes: <bool>` |
