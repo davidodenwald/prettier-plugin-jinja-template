@@ -8,43 +8,43 @@ const regex = re.regex`
 	(?<node>
 		# Expression
 		\{\{
-			(?<startDelimiterEx>\g<delimiter>?)\s*
-				(?<expression>(?>\g<escapeQuotes> | \g<allSymbols>)*?)
-			\s*(?<endDelimiterEx>\g<delimiter>?)
+			(?<startDelimiterEx>\g<DELIMITER>?)\s*
+				(?<expression>(?>\g<ESCAPEQUOTES> | \g<ALLSYMBOLS>)*?)
+			\s*(?<endDelimiterEx>\g<DELIMITER>?)
 		\}\}
 		|
 		# Statement
 		\{%
-			(?<startDelimiter>\g<delimiter>?)\s*
+			(?<startDelimiter>\g<DELIMITER>?)\s*
 				(?<statement>
 					(?<keyword>\w+)
-					(?>\g<escapeQuotes> | \g<allSymbols>)*?
+					(?>\g<ESCAPEQUOTES> | \g<ALLSYMBOLS>)*?
 				)
-			\s*(?<endDelimiter>\g<delimiter>?)
+			\s*(?<endDelimiter>\g<DELIMITER>?)
 		%\}
 		|
 		# Ignore block
 		(?<ignoreBlock>
 			(<!--\s*prettier-ignore-start\s*--> | \{\#\s*prettier-ignore-start\s*\#\})
-				\g<everything>
+				\g<EVERYTHING>
 			(<!--\s*prettier-ignore-end\s*--> | \{\#\s*prettier-ignore-end\s*\#\})
 		)
 		|
 		# Comment
-		(?<comment>\{\#\g<everything>\#\})
+		(?<comment>\{\#\g<EVERYTHING>\#\})
 		|
 		# Script Block
-		(?<scriptBlock><script\g<everything>>\g<everything><\/script>\s*)
+		(?<scriptBlock><script\g<EVERYTHING>>\g<EVERYTHING><\/script>\s*)
 		|
 		# Style Block
-		(?<styleBlock><style\g<everything>>\g<everything><\/style>\s*)
+		(?<styleBlock><style\g<EVERYTHING>>\g<EVERYTHING><\/style>\s*)
 	)
 
 	(?(DEFINE)
-		(?<everything>		\g<allSymbols>*?)
-		(?<allSymbols>		[\s\S])
-		(?<delimiter>			[\-+])
-		(?<escapeQuotes>	'[^']*'|"[^"]*")
+		(?<EVERYTHING>		\g<ALLSYMBOLS>*?)
+		(?<ALLSYMBOLS>		[\s\S])
+		(?<DELIMITER>			[\-+])
+		(?<ESCAPEQUOTES>	'[^']*'|"[^"]*")
 	)
 `;
 
