@@ -16,10 +16,15 @@
     
 	
 {# content #}
+
+
+{% set welcome_message = "Welcome to my awesome homepage." %}
+
+
 {% block content %}
     <h1>Index</h1>
     <p class="important">
-      Welcome to my awesome homepage.
+      {{welcome_message}}
     </p>
   
 {% endblock %}

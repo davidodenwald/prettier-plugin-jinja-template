@@ -83,6 +83,11 @@ const printStatement = (node: Statement): builders.Doc => {
 	) {
 		return [builders.dedent(builders.hardline), statemnt, builders.hardline];
 	}
+
+	if (node.keyword === "set" && node.preNewLines > 1) {
+		return builders.group([builders.trim, builders.hardline, statemnt]);
+	}
+
 	return statemnt;
 };
 
