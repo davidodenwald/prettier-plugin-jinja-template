@@ -14,9 +14,12 @@
 {{ title }}
 
 {# content #}
+
+{% set welcome_message = "Welcome to my awesome homepage." %}
+
 {% block content %}
   <h1>Index</h1>
-  <p class="important">Welcome to my awesome homepage.</p>
+  <p class="important">{{ welcome_message }}</p>
 {% endblock %}
 
 <div></div>
