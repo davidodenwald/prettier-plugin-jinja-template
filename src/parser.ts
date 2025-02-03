@@ -1,15 +1,22 @@
 import { Parser } from "prettier";
-import { Node, Placeholder, Expression, Statement, Block } from "./jinja";
+import {
+	BlockNode,
+	Delimiter,
+	Node,
+	Placeholder,
+	RootNode,
+	StatementNode,
+} from "./jinja";
 import regex from "./regex";
 
 const NOT_FOUND = -1;
 
 export const parse: Parser<Node>["parse"] = (text) => {
-	const statementStack: Statement[] = [];
+	const statementStack: StatementNode[] = [];
 
-	const root: Node = {
+	const root: RootNode = {
 		id: "0",
-		type: "root" as const,
+		type: "root",
 		content: text,
 		preNewLines: 0,
 		originalText: text,
@@ -81,7 +88,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 			const delimiter = {
 				start: match.groups.startDelimiterEx,
 				end: match.groups.endDelimiterEx,
-			};
+			} as Delimiter;
 
 			root.content = replaceAt(
 				root.content,
@@ -94,7 +101,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 				type: "expression",
 				content: expression,
 				delimiter,
-			} as Expression;
+			};
 
 			i += match.index + placeholder.length;
 		}
@@ -104,10 +111,10 @@ export const parse: Parser<Node>["parse"] = (text) => {
 			const delimiter = {
 				start: match.groups.startDelimiter,
 				end: match.groups.endDelimiter,
-			};
+			} as Delimiter;
 
 			if (keyword.startsWith("end")) {
-				let start: Statement | undefined;
+				let start: StatementNode | undefined;
 				while (!start) {
 					start = statementStack.pop();
 
@@ -131,21 +138,21 @@ export const parse: Parser<Node>["parse"] = (text) => {
 					}
 				}
 
-				const end = {
+				const end: StatementNode = {
 					...node,
 					index: match.index + i,
 					type: "statement",
 					content: statement,
 					keyword,
 					delimiter,
-				} as Statement;
+				};
 				root.nodes[end.id] = end;
 
 				const originalText = root.content.slice(
 					start.index,
 					end.index + end.length,
 				);
-				const block = {
+				const block: BlockNode = {
 					id: generatePlaceholder(),
 					type: "block",
 					start: start,
@@ -160,7 +167,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 					index: start.index,
 					length: end.index + end.length - start.index,
 					nodes: root.nodes,
-				} as Block;
+				};
 				root.nodes[block.id] = block;
 
 				root.content = replaceAt(
@@ -178,8 +185,8 @@ export const parse: Parser<Node>["parse"] = (text) => {
 					content: statement,
 					keyword,
 					delimiter,
-				} as Statement;
-				statementStack.push(root.nodes[placeholder] as Statement);
+				};
+				statementStack.push(root.nodes[placeholder] as StatementNode);
 
 				i += match.index + matchLength;
 			}
