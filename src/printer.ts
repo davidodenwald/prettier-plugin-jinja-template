@@ -1,6 +1,12 @@
 import { AstPath, Doc, Options, Printer } from "prettier";
 import { builders, utils } from "prettier/doc";
-import { Block, Expression, Node, Placeholder, Statement } from "./jinja";
+import {
+	BlockNode,
+	ExpressionNode,
+	Node,
+	Placeholder,
+	StatementNode,
+} from "./jinja";
 
 const NOT_FOUND = -1;
 
@@ -27,9 +33,9 @@ export const print: Printer<Node>["print"] = (path) => {
 
 	switch (node.type) {
 		case "expression":
-			return printExpression(node as Expression);
+			return printExpression(node);
 		case "statement":
-			return printStatement(node as Statement);
+			return printStatement(node);
 		case "comment":
 			return printCommentBlock(node);
 		case "ignore":
@@ -38,7 +44,7 @@ export const print: Printer<Node>["print"] = (path) => {
 	return [];
 };
 
-const printExpression = (node: Expression): builders.Doc => {
+const printExpression = (node: ExpressionNode): builders.Doc => {
 	const multiline = node.content.includes("\n");
 
 	const expression = builders.group(
@@ -61,7 +67,7 @@ const printExpression = (node: Expression): builders.Doc => {
 		: expression;
 };
 
-const printStatement = (node: Statement): builders.Doc => {
+const printStatement = (node: StatementNode): builders.Doc => {
 	const multiline = node.content.includes("\n");
 
 	const statemnt = builders.group(
@@ -180,7 +186,7 @@ export const embed: Printer<Node>["embed"] = () => {
 		);
 
 		if (node.type === "block") {
-			const block = buildBlock(path, print, node as Block, mapped);
+			const block = buildBlock(path, print, node, mapped);
 
 			return node.preNewLines > 1
 				? builders.group([builders.trim, builders.hardline, block])
@@ -216,7 +222,7 @@ const splitAtElse = (node: Node): string[] => {
 	const elseNodes = Object.values(node.nodes).filter(
 		(n) =>
 			n.type === "statement" &&
-			["else", "elif"].includes((n as Statement).keyword) &&
+			["else", "elif"].includes((n as StatementNode).keyword) &&
 			node.content.search(n.id) !== NOT_FOUND,
 	);
 	if (!elseNodes.length) {
@@ -252,16 +258,16 @@ export const findPlaceholders = (text: string): [number, number][] => {
 	return res;
 };
 
-export const surroundingBlock = (node: Node): Block | undefined => {
+export const surroundingBlock = (node: Node): BlockNode | undefined => {
 	return Object.values(node.nodes).find(
 		(n) => n.type === "block" && n.content.search(node.id) !== NOT_FOUND,
-	) as Block;
+	) as BlockNode;
 };
 
 const buildBlock = (
 	path: AstPath<Node>,
 	print: (path: AstPath<Node>) => builders.Doc,
-	block: Block,
+	block: BlockNode,
 	mapped: (string | builders.Doc[] | builders.DocCommand)[],
 ): builders.Doc => {
 	// if the content is empty or whitespace only.

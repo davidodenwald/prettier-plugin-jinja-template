@@ -3,9 +3,8 @@ export const Placeholder = {
 	endToken: "~#",
 };
 
-export interface Node {
+interface BaseNode {
 	id: string;
-	type: "root" | "expression" | "statement" | "block" | "comment" | "ignore";
 	content: string;
 	preNewLines: number;
 	originalText: string;
@@ -14,26 +13,46 @@ export interface Node {
 	nodes: { [id: string]: Node };
 }
 
+export interface RootNode extends BaseNode {
+	type: "root";
+}
+
 type DelimiterChr = "" | "-" | "+";
 export type Delimiter = {
 	start: DelimiterChr;
 	end: DelimiterChr;
 };
 
-export interface Expression extends Node {
+export interface ExpressionNode extends BaseNode {
 	type: "expression";
 	delimiter: Delimiter;
 }
 
-export interface Statement extends Node {
+export interface StatementNode extends BaseNode {
 	type: "statement";
 	keyword: string;
 	delimiter: Delimiter;
 }
 
-export interface Block extends Node {
+export interface BlockNode extends BaseNode {
 	type: "block";
-	start: Statement;
-	end: Statement;
+	start: StatementNode;
+	end: StatementNode;
 	containsNewLines: boolean;
 }
+
+export interface CommentNode extends BaseNode {
+	type: "comment";
+}
+
+export interface IgnoreNode extends BaseNode {
+	type: "ignore";
+}
+
+export type Node =
+	| RootNode
+	| ExpressionNode
+	| StatementNode
+	| BlockNode
+	| CommentNode
+	| IgnoreNode;
