@@ -164,7 +164,7 @@ export const embed: Printer<Node>["embed"] = () => {
 							res.push(currentDoc.slice(lastEnd, start));
 						}
 
-						const p = currentDoc.slice(start, end + 1) as string;
+						const p = currentDoc.slice(start, end + 1);
 
 						if (ignoreDoc) {
 							res.push(node.nodes[p].originalText);
@@ -220,9 +220,9 @@ const getMultilineGroup = (content: String): builders.Group => {
 
 const splitAtElse = (node: Node): string[] => {
 	const elseNodes = Object.values(node.nodes).filter(
-		(n) =>
+		(n): n is StatementNode =>
 			n.type === "statement" &&
-			["else", "elif"].includes((n as StatementNode).keyword) &&
+			["else", "elif"].includes(n.keyword) &&
 			node.content.search(n.id) !== NOT_FOUND,
 	);
 	if (!elseNodes.length) {
@@ -238,7 +238,7 @@ const splitAtElse = (node: Node): string[] => {
  * occuring in a string.
  */
 export const findPlaceholders = (text: string): [number, number][] => {
-	const res = [];
+	const res: [number, number][] = [];
 	let i = 0;
 
 	while (true) {
@@ -249,10 +249,7 @@ export const findPlaceholders = (text: string): [number, number][] => {
 			.search(Placeholder.endToken);
 		if (end === NOT_FOUND) break;
 
-		res.push([
-			start + i,
-			end + start + i + Placeholder.startToken.length + 1,
-		] as [number, number]);
+		res.push([start + i, end + start + i + Placeholder.startToken.length + 1]);
 		i += start + Placeholder.startToken.length;
 	}
 	return res;
@@ -260,8 +257,9 @@ export const findPlaceholders = (text: string): [number, number][] => {
 
 export const surroundingBlock = (node: Node): BlockNode | undefined => {
 	return Object.values(node.nodes).find(
-		(n) => n.type === "block" && n.content.search(node.id) !== NOT_FOUND,
-	) as BlockNode;
+		(n): n is BlockNode =>
+			n.type === "block" && n.content.search(node.id) !== NOT_FOUND,
+	);
 };
 
 const buildBlock = (
