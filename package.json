@@ -31,16 +31,16 @@
 		"prepublishOnly": "npm run test && npm run build"
 	},
 	"devDependencies": {
-		"@babel/cli": "^7.25.6",
-		"@babel/core": "^7.25.2",
-		"@babel/preset-typescript": "^7.24.7",
-		"@types/jest": "^29.5.13",
-		"babel-plugin-transform-regex": "^4.3.1",
+		"@babel/cli": "^7.27.0",
+		"@babel/core": "^7.26.10",
+		"@babel/preset-typescript": "^7.27.0",
+		"@types/jest": "^29.5.14",
+		"babel-plugin-transform-regex": "^6.0.1",
 		"jest": "^29.7.0",
-		"prettier": "^3.3.3",
-		"regex": "^4.3.2",
-		"ts-jest": "^29.2.5",
-		"typescript": "^5.6.2"
+		"prettier": "^3.5.3",
+		"regex": "^6.0.1",
+		"ts-jest": "^29.3.2",
+		"typescript": "^5.8.3"
 	},
 	"peerDependencies": {
 		"prettier": "^3.0.0"
