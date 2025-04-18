@@ -1,6 +1,6 @@
 {
 	"name": "prettier-plugin-jinja-template",
-	"version": "2.0.0",
+	"version": "2.1.0",
 	"description": "Prettier plugin for formatting jinja templates.",
 	"author": "David Odenwald",
 	"license": "MIT",
