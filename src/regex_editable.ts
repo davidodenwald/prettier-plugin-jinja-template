@@ -30,10 +30,10 @@ export default regex`
 		(?<comment>\{\#\g<EVERYTHING>\#\})
 		|
 		# Script Block
-		(?<scriptBlock><script\g<EVERYTHING>>\g<EVERYTHING><\/script>\s*)
+		(?<scriptBlock><script\g<EVERYTHING>>(?<scriptContent>\g<EVERYTHING>)<\/script>\s*)
 		|
 		# Style Block
-		(?<styleBlock><style\g<EVERYTHING>>\g<EVERYTHING><\/style>\s*)
+		(?<styleBlock><style\g<EVERYTHING>>(?<styleContent>\g<EVERYTHING>)<\/style>\s*)
 	)
 
 	(?(DEFINE)

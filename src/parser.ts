@@ -37,7 +37,7 @@ export const parse: Parser<Node>["parse"] = (text) => {
 
 		// skip script and style blocks
 		if (match.groups.scriptBlock || match.groups.styleBlock) {
-			i += match.index + matchLength;
+			i += match.index + 1;
 			continue;
 		}
 
@@ -45,7 +45,13 @@ export const parse: Parser<Node>["parse"] = (text) => {
 		const expression = match.groups.expression;
 		const statement = match.groups.statement;
 		const ignoreBlock = match.groups.ignoreBlock;
+		const scriptContent = match.groups.scriptContent;
+		const styleContent = match.groups.styleContent;
 		const comment = match.groups.comment;
+
+		if (scriptContent || styleContent) {
+			console.log(scriptContent || styleContent);
+		}
 
 		if (!matchText && !expression && !statement && !ignoreBlock && !comment) {
 			continue;
