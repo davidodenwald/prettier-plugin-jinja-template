@@ -1,3 +1,4 @@
+import { expect, it, vi } from "vitest";
 import { existsSync, readdirSync, readFileSync } from "fs";
 import { join } from "path";
 import { format, Options } from "prettier";
@@ -13,7 +14,7 @@ const prettify = (code: string, options: Options) =>
 const testFolder = join(__dirname, "cases");
 const tests = readdirSync(testFolder);
 
-tests.forEach((test) => {
+tests.forEach((test: string) => {
 	if (test.startsWith("_")) {
 		return;
 	}
@@ -33,7 +34,7 @@ tests.forEach((test) => {
 			?.groups?.message;
 
 		if (expectedError) {
-			jest.spyOn(console, "error").mockImplementation(() => {});
+			vi.spyOn(console, "error").mockImplementation(() => {});
 			await expect(format()).rejects.toThrow(expectedError);
 		} else {
 			const result = await format();

@@ -1,3 +1,4 @@
+import { expect, test } from "vitest";
 import { findPlaceholders } from "../src/printer";
 
 test("findPlaceholders should find placeholder", () => {
