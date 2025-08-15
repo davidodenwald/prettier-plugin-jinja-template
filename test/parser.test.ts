@@ -1,3 +1,4 @@
+import { expect, test } from "vitest";
 import { parse } from "../src/parser";
 import { ParserOptions } from "prettier";
 
