@@ -30,8 +30,8 @@ tests.forEach((test: string) => {
 
 		const format = () => prettify(input, configObject);
 
-		const expectedError = expected.match(/Error\(["'`](?<message>.*)["'`]\)/)
-			?.groups?.message;
+		const expectedError = expected.match(/Error\(`(?<message>.*)`\)/s)?.groups
+			?.message;
 
 		if (expectedError) {
 			vi.spyOn(console, "error").mockImplementation(() => {});
