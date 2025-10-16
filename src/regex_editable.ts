@@ -29,6 +29,9 @@ export default regex`
 		# Comment
 		(?<comment>\{\#\g<EVERYTHING>\#\})
 		|
+		# HTML Comment
+		(?<htmlComment><!--\g<EVERYTHING>-->\s*)
+		|
 		# Script Block
 		(?<scriptBlock><script\g<EVERYTHING>>\g<EVERYTHING><\/script>\s*)
 		|
