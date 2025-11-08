@@ -56,12 +56,16 @@ export const parse: Parser<Node>["parse"] = (text) => {
 		}
 		const placeholder = generatePlaceholder();
 
+		let preNewLines = 0;
 		const emptyLinesBetween = root.content
 			.slice(i, i + match.index)
-			.match(/^\s+$/) || [""];
-		const preNewLines = emptyLinesBetween.length
-			? emptyLinesBetween[0].split("\n").length - 1
-			: 0;
+			.match(/^\s+$/);
+		if (emptyLinesBetween) {
+			preNewLines = emptyLinesBetween[0].split("\n").length - 1;
+		} else if (i === 0 && match.index === 0) {
+			// If the match is the first thing in the file
+			preNewLines = 1;
+		}
 
 		const node = {
 			id: placeholder,

@@ -286,7 +286,7 @@ const buildBlock = (
 	}
 	return builders.group([
 		path.call(print, "nodes", block.start.id),
-		mapped,
+		[builders.softline, mapped, builders.softline],
 		path.call(print, "nodes", block.end.id),
 	]);
 };
