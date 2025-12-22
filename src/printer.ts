@@ -41,7 +41,7 @@ export const print: Printer<Node>["print"] = (path) => {
 		case "ignore":
 			return printIgnoreBlock(node);
 	}
-	return [];
+	return node.originalText;
 };
 
 const printExpression = (node: ExpressionNode): builders.Doc => {
