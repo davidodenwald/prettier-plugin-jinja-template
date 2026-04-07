@@ -1,0 +1,7 @@
+{% if condition %} {# pragma: no cover #}
+  {{ condition }}
+
+    {% for val in values %} {# A loop #}
+    {{ val }}
+{% endfor %}
+{% endif %}
