@@ -1,5 +1,5 @@
 import { AstPath, Doc, Options, Printer } from "prettier";
-import { builders, utils } from "prettier/doc";
+import { builders, printer as docPrinter, utils } from "prettier/doc";
 import {
 	BlockNode,
 	ExpressionNode,
@@ -9,6 +9,12 @@ import {
 } from "./jinja";
 
 const NOT_FOUND = -1;
+
+const PLACEHOLDER_RE = new RegExp(
+	Placeholder.startToken.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") +
+		"\\d+" +
+		Placeholder.endToken.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+);
 
 process.env.PRETTIER_DEBUG = "true";
 
@@ -111,6 +117,70 @@ const printIgnoreBlock = (node: Node): builders.Doc => {
 	return node.content;
 };
 
+interface StrippedComment {
+	placeholder: string;
+	lineContent: string;
+}
+
+/**
+ * Strip inline comment placeholders (preNewLines === 0) that follow
+ * an HTML tag from content before HTML formatting. Records the
+ * trimmed line content preceding each comment for position matching.
+ */
+const stripInlineComments = (
+	content: string,
+	nodes: { [id: string]: Node },
+): { strippedContent: string; stripped: StrippedComment[] } => {
+	const stripped: StrippedComment[] = [];
+	let strippedContent = content;
+	const re = new RegExp(PLACEHOLDER_RE.source, "g");
+	let match;
+
+	while ((match = re.exec(strippedContent)) !== null) {
+		const p = match[0];
+		const n = nodes[p];
+		if (n && n.type === "comment" && n.preNewLines === 0) {
+			const before = strippedContent.slice(0, match.index);
+			if (!before.match(/<\/[^>]+>$|<[^>]+\/>$/)) {
+				continue;
+			}
+			const lastNewline = before.lastIndexOf("\n");
+			const lineContent = before.slice(lastNewline + 1).trim();
+			stripped.push({ placeholder: p, lineContent });
+			strippedContent =
+				strippedContent.slice(0, match.index) +
+				strippedContent.slice(match.index + p.length);
+			re.lastIndex = match.index;
+		}
+	}
+
+	return { strippedContent, stripped };
+};
+
+/**
+ * Extract leading inline comment placeholders from block content
+ * so they stay on the same line as the block's start statement.
+ */
+const extractLeadingComments = (
+	block: BlockNode,
+): { commentIds: string[]; remaining: string } => {
+	const commentIds: string[] = [];
+	const re = new RegExp("^\\s*(" + PLACEHOLDER_RE.source + ")");
+	let remaining = block.content;
+	let match;
+	while ((match = remaining.match(re)) !== null) {
+		const p = match[1];
+		const n = block.nodes[p];
+		if (n && n.type === "comment" && n.preNewLines === 0) {
+			commentIds.push(p);
+			remaining = remaining.slice(match[0].length);
+		} else {
+			break;
+		}
+	}
+	return { commentIds, remaining };
+};
+
 export const embed: Printer<Node>["embed"] = () => {
 	return async (
 		textToDoc: (text: string, options: Options) => Promise<Doc>,
@@ -125,68 +195,97 @@ export const embed: Printer<Node>["embed"] = () => {
 			return undefined;
 		}
 
+		// For block nodes, extract leading inline comments so they
+		// stay on the same line as the start statement.
+		let leadingCommentDocs: builders.Doc[] = [];
+		let blockContentOverride: string | undefined;
+		if (node.type === "block") {
+			const { commentIds, remaining } = extractLeadingComments(
+				node as BlockNode,
+			);
+			if (commentIds.length) {
+				leadingCommentDocs = commentIds.map((id) =>
+					path.call(print, "nodes", id),
+				);
+				blockContentOverride = remaining;
+			}
+		}
+
+		const nodeToSplit =
+			blockContentOverride !== undefined
+				? { ...node, content: blockContentOverride }
+				: node;
+
 		const mapped = await Promise.all(
-			splitAtElse(node).map(async (content) => {
-				let doc;
+			splitAtElse(nodeToSplit).map(async (content) => {
 				if (content in node.nodes) {
-					doc = content;
-				} else {
-					doc = await textToDoc(content, {
-						...options,
-						parser: "html",
-					});
+					return replacePlaceholders(
+						content as Doc,
+						node,
+						path,
+						print,
+					);
 				}
 
-				let ignoreDoc = false;
+				const { strippedContent, stripped } = stripInlineComments(
+					content,
+					node.nodes,
+				);
 
-				return utils.mapDoc(doc, (currentDoc) => {
-					if (typeof currentDoc !== "string") {
-						return currentDoc;
-					}
-
-					if (currentDoc === "<!-- prettier-ignore -->") {
-						ignoreDoc = true;
-						return currentDoc;
-					}
-
-					const idxs = findPlaceholders(currentDoc).filter(
-						([start, end]) => currentDoc.slice(start, end + 1) in node.nodes,
-					);
-					if (!idxs.length) {
-						ignoreDoc = false;
-						return currentDoc;
-					}
-
-					const res: builders.Doc = [];
-					let lastEnd = 0;
-					for (const [start, end] of idxs) {
-						if (lastEnd < start) {
-							res.push(currentDoc.slice(lastEnd, start));
-						}
-
-						const p = currentDoc.slice(start, end + 1);
-
-						if (ignoreDoc) {
-							res.push(node.nodes[p].originalText);
-						} else {
-							res.push(path.call(print, "nodes", p));
-						}
-
-						lastEnd = end + 1;
-					}
-
-					if (lastEnd > 0 && currentDoc.length > lastEnd) {
-						res.push(currentDoc.slice(lastEnd));
-					}
-
-					ignoreDoc = false;
-					return res;
+				const doc = await textToDoc(strippedContent, {
+					...options,
+					parser: "html",
 				});
+
+				let result = replacePlaceholders(doc, node, path, print);
+
+				// Reinsert stripped inline comments by printing the doc
+				// to a string and splicing comments at line ends.
+				if (stripped.length) {
+					const formatted = docToString(result, options);
+					let output = formatted;
+
+					for (const { placeholder, lineContent } of stripped) {
+						const commentText = node.nodes[placeholder].content;
+						if (!lineContent) {
+							continue;
+						}
+						const escaped = lineContent.replace(
+							/[.*+?^${}()|[\]\\]/g,
+							"\\$&",
+						);
+						// Match the line containing this content and
+						// insert the comment at the end of that line.
+						const lineRe = new RegExp(
+							escaped + ".*?(?=\\n|$)",
+						);
+						const lineMatch = output.match(lineRe);
+						if (lineMatch && lineMatch.index !== undefined) {
+							const insertAt =
+								lineMatch.index +
+								lineMatch[0].trimEnd().length;
+							output =
+								output.slice(0, insertAt) +
+								commentText +
+								output.slice(insertAt);
+						}
+					}
+
+					result = output;
+				}
+
+				return result;
 			}),
 		);
 
 		if (node.type === "block") {
-			const block = buildBlock(path, print, node, mapped);
+			const block = buildBlock(
+				path,
+				print,
+				node,
+				mapped,
+				leadingCommentDocs,
+			);
 
 			return node.preNewLines > 1
 				? builders.group([builders.trim, builders.hardline, block])
@@ -194,6 +293,82 @@ export const embed: Printer<Node>["embed"] = () => {
 		}
 		return [...mapped, builders.hardline];
 	};
+};
+
+/**
+ * Replace placeholder tokens in a doc with their formatted Jinja nodes.
+ */
+const replacePlaceholders = (
+	doc: Doc,
+	node: Node,
+	path: AstPath,
+	print: (
+		selector?: string | number | Array<string | number> | AstPath,
+	) => Doc,
+): Doc => {
+	let ignoreDoc = false;
+
+	return utils.mapDoc(doc, (currentDoc) => {
+		if (typeof currentDoc !== "string") {
+			return currentDoc;
+		}
+
+		if (currentDoc === "<!-- prettier-ignore -->") {
+			ignoreDoc = true;
+			return currentDoc;
+		}
+
+		const idxs = findPlaceholders(currentDoc).filter(
+			([start, end]) => currentDoc.slice(start, end + 1) in node.nodes,
+		);
+		if (!idxs.length) {
+			ignoreDoc = false;
+			return currentDoc;
+		}
+
+		const res: builders.Doc = [];
+		let lastEnd = 0;
+		for (const [start, end] of idxs) {
+			if (lastEnd < start) {
+				res.push(currentDoc.slice(lastEnd, start));
+			}
+
+			const p = currentDoc.slice(start, end + 1);
+
+			if (ignoreDoc) {
+				res.push(node.nodes[p].originalText);
+			} else {
+				res.push(path.call(print, "nodes", p));
+			}
+
+			lastEnd = end + 1;
+		}
+
+		if (lastEnd > 0 && currentDoc.length > lastEnd) {
+			res.push(currentDoc.slice(lastEnd));
+		}
+
+		ignoreDoc = false;
+		return res;
+	});
+};
+
+/**
+ * Print a prettier Doc to a string for post-processing.
+ */
+const docToString = (doc: Doc, options: Options): string => {
+	const { formatted } = (
+		docPrinter as unknown as {
+			printDocToString: (
+				doc: Doc,
+				opts: { printWidth: number; tabWidth: number },
+			) => { formatted: string };
+		}
+	).printDocToString(doc, {
+		printWidth: options.printWidth ?? 80,
+		tabWidth: options.tabWidth ?? 2,
+	});
+	return formatted;
 };
 
 const getMultilineGroup = (content: String): builders.Group => {
@@ -267,11 +442,13 @@ const buildBlock = (
 	print: (path: AstPath<Node>) => builders.Doc,
 	block: BlockNode,
 	mapped: (string | builders.Doc[] | builders.DocCommand)[],
+	leadingCommentDocs: builders.Doc[],
 ): builders.Doc => {
 	// if the content is empty or whitespace only.
 	if (block.content.match(/^\s*$/)) {
 		return builders.fill([
 			path.call(print, "nodes", block.start.id),
+			...leadingCommentDocs,
 			builders.softline,
 			path.call(print, "nodes", block.end.id),
 		]);
@@ -279,6 +456,7 @@ const buildBlock = (
 	if (block.containsNewLines) {
 		return builders.group([
 			path.call(print, "nodes", block.start.id),
+			...leadingCommentDocs,
 			builders.indent([builders.softline, mapped]),
 			builders.hardline,
 			path.call(print, "nodes", block.end.id),
@@ -286,6 +464,7 @@ const buildBlock = (
 	}
 	return builders.group([
 		path.call(print, "nodes", block.start.id),
+		...leadingCommentDocs,
 		mapped,
 		path.call(print, "nodes", block.end.id),
 	]);
