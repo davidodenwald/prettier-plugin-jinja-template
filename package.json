@@ -31,9 +31,9 @@
 		"prepublishOnly": "npm run test && npm run build"
 	},
 	"devDependencies": {
-		"@babel/cli": "^7.28.6",
-		"@babel/core": "^7.29.0",
-		"@babel/preset-typescript": "^7.28.5",
+		"@babel/cli": "^8.0.1",
+		"@babel/core": "^8.0.1",
+		"@babel/preset-typescript": "^8.0.1",
 		"@types/node": "^25.6.0",
 		"babel-plugin-transform-regex": "^6.1.0",
 		"prettier": "^3.8.3",
